@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/favicon.ico?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="数据库,keepalived,zabbix,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文记录了通过keepalived搭建zabbix双主模式（主主同步）高可用系统的详细步骤，其中会介绍zabbix的安装，mysql的双主互备，keepalived的配置，也会记录过程中遇到的问题以及对应的解决方法;">
+<meta name="keywords" content="数据库,keepalived,zabbix">
+<meta property="og:type" content="article">
+<meta property="og:title" content="通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统">
+<meta property="og:url" content="http://yoursite.com/2018/03/23/架构/通过keepalived搭建mysql双主模式的高可用集群系统/index.html">
+<meta property="og:site_name" content="À Çraftman">
+<meta property="og:description" content="本文记录了通过keepalived搭建zabbix双主模式（主主同步）高可用系统的详细步骤，其中会介绍zabbix的安装，mysql的双主互备，keepalived的配置，也会记录过程中遇到的问题以及对应的解决方法;">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://tracerzzz.ltd/20180316152118561067778.png">
+<meta property="og:image" content="https://tracerzzz.ltd/20180319152143914570938.png">
+<meta property="og:image" content="https://tracerzzz.ltd/20180319152143914570938.png">
+<meta property="og:image" content="https://tracerzzz.ltd/20180322152171000488344.png">
+<meta property="og:image" content="https://tracerzzz.ltd/20180322152171091923913.png">
+<meta property="og:image" content="https://tracerzzz.ltd/20180322152171094816591.png">
+<meta property="og:updated_time" content="2020-03-31T12:35:51.304Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统">
+<meta name="twitter:description" content="本文记录了通过keepalived搭建zabbix双主模式（主主同步）高可用系统的详细步骤，其中会介绍zabbix的安装，mysql的双主互备，keepalived的配置，也会记录过程中遇到的问题以及对应的解决方法;">
+<meta name="twitter:image" content="https://tracerzzz.ltd/20180316152118561067778.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/23/架构/通过keepalived搭建mysql双主模式的高可用集群系统/">
+
+
+
+
+
+  <title>通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统 | À Çraftman</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+<div id="bgimg"></div>
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">À Çraftman</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">tracerZzz'blog</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+           
+             首页
+            
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+           
+            标签<span class="menuspan">15</span>
+           
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+           
+            分类<span class="menuspan">3</span>
+           
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+           
+            归档<span class="menuspan">14</span>
+            
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+           
+             关于
+            
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal post-block" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/23/架构/通过keepalived搭建mysql双主模式的高可用集群系统/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="tracerZzz">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="https://tracerzzz.ltd/20180114151590788838213.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="À Çraftman">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-23T12:37:11+08:00">
+                2018-03-23
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2020-03-31T20:35:51+08:00">
+                2020-03-31
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/架构/" itemprop="url" rel="index">
+                    <span itemprop="name">架构</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/03/23/架构/通过keepalived搭建mysql双主模式的高可用集群系统/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/2018/03/23/架构/通过keepalived搭建mysql双主模式的高可用集群系统/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2,847
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="Mysql双主模式"><a href="#Mysql双主模式" class="headerlink" title="Mysql双主模式"></a>Mysql双主模式</h3><p>mysql双主模式也叫做主主同步或者双主互备，即两台数据库server互为主备。双主模式是在普通的master-slave主备模式下进一步拓展而来的，普通的master-slave主备模式即一主一备，slave主机拉取master主机的Binary log，然后将二进制文件解析为sql语句并完全顺序的执行sql语句所记录的所有操作，从而使slave的数据和master保持一致；双主互备是两台机器互相以对方为master，定时拉取对方的Binary log。双主互备中两台主机都可以进行读写操作，而在普通主备，只有master可以进行写操作，slave只能进行读取操作；</p>
+<p><img src="https://tracerzzz.ltd/20180316152118561067778.png" alt="20180316152118561067778.png"></p>
+<hr>
+<h3 id="Keepalived"><a href="#Keepalived" class="headerlink" title="Keepalived"></a>Keepalived</h3><p><a href="http://www.keepalived.org/doc/" target="_blank" rel="noopener">Keepalived</a>是一款高可用软件。keepalived可以让服务器集群共享一个虚拟ip，也就是我们说的vip，同一时间只有一个服务器占有这个虚拟ip，若该服务器不可用或者该服务器的权重小于其他机器，则虚拟IP漂移至另一台服务器并对外提供服务；</p>
+<h3 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h3><h4 id="机器准备（centos7系统）"><a href="#机器准备（centos7系统）" class="headerlink" title="机器准备（centos7系统）"></a>机器准备（centos7系统）</h4><p>两台server:<code>183.57.148.5</code>（<strong>master</strong>）,<code>183.57.148.7</code>(<strong>slave</strong>)</p>
+<p>一个vip:<code>183.57.148.23</code></p>
+<blockquote>
+<p>由于基于vrrp协议，两台server和vip必须处于同一网段</p>
+</blockquote>
+<h4 id="安装mysql-并初始化密码"><a href="#安装mysql-并初始化密码" class="headerlink" title="安装mysql 并初始化密码"></a>安装mysql 并初始化密码</h4><p>首先登陆master</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install mysql-server</span><br><span class="line">mysql -h localhost -u root -p</span><br></pre></td></tr></table></figure>
+<p>发现需要输入密码,于是去日志文件里找默认密码</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /var/<span class="built_in">log</span>/mysql.log</span><br></pre></td></tr></table></figure>
+<p>找到下面一行</p>
+<p><code>[Note] A temporary password is generated for root@localhost: i8nk2b*1z,bS</code></p>
+<p><code>i8nk2b*1z,bS</code>是初始化的密码，再次使用<code>mysql -h localhost -u root -p</code>登陆</p>
+<p>使用以下命令重置root密码</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">USER</span> <span class="string">'root'</span>@<span class="string">'localhost'</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">'MyNewPass111!'</span>;</span><br></pre></td></tr></table></figure>
+<p>登陆slave执行相同的操作</p>
+<h3 id="下载zabbix-proxy，导入表结构"><a href="#下载zabbix-proxy，导入表结构" class="headerlink" title="下载zabbix-proxy，导入表结构"></a>下载zabbix-proxy，导入表结构</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install zabbix-proxy-mysql</span><br></pre></td></tr></table></figure>
+<p>然后根据<a href="https://www.zabbix.com/documentation/3.4/manual/installation/install_from_packages/rhel_centos" target="_blank" rel="noopener">zabbix文档</a>提示创建数据库表结构</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -h localhost -u root -p</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">database</span> zabbix_proxy <span class="built_in">character</span> <span class="keyword">set</span> utf8 <span class="keyword">collate</span> utf8_bin;</span><br></pre></td></tr></table></figure>
+<p>为zabbix_proxy库创建zabbix用户并授权，然后退出（避免使用root登陆特定的数据库）</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">grant</span> <span class="keyword">all</span> <span class="keyword">privileges</span> <span class="keyword">on</span> zabbix_proxy.* <span class="keyword">to</span> zabbix@localhost <span class="keyword">identified</span> <span class="keyword">by</span> <span class="string">'Zabbix@ctzcdn4321!'</span>;  </span><br><span class="line">quit</span><br></pre></td></tr></table></figure>
+<p>执行zabbix_proxy自带的sql生成zabbix_proxy表结构</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zcat /usr/share/doc/zabbix-proxy-mysql-3.4.1/schema.sql.gz |mysql -uroot -p zabbix_proxy</span><br></pre></td></tr></table></figure>
+<p>这个过程需要耐心等待一会，然后登陆数据库查看表数量 一共140个，如果数量不对，需要drop掉zabbix_proxy重新再生成一次。</p>
+<p>最后在slave机器上也执行以上操作。确保两台机器的数据库表结构一致；</p>
+<h3 id="修改-etc-my-cnf文件，配置同步"><a href="#修改-etc-my-cnf文件，配置同步" class="headerlink" title="修改/etc/my.cnf文件，配置同步"></a>修改/etc/my.cnf文件，配置同步</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/my.cnf</span><br></pre></td></tr></table></figure>
+<p>在[mysqld]下追加</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">log-bin = mysql-bin    #开启binlog日志</span><br><span class="line"></span><br><span class="line">binlog_format = mixed  #基于混合模式,mysql Replication 有三种模式，基于语句，基于行，基于混合模式</span><br><span class="line"></span><br><span class="line">server-id = 1          #server-id master要和slave区分开，master为1 ，slave为2 </span><br><span class="line"></span><br><span class="line">relay-log = relay-bin  # 开启中继日志</span><br><span class="line"></span><br><span class="line">relay-log-index = slave-relay-bin.index #中继日志的索引文件</span><br><span class="line"></span><br><span class="line">auto-increment-increment = 2 #主键自增的幅度，这个要和机器的数量一致</span><br><span class="line"></span><br><span class="line">auto-increment-offset = 1  #从几开始自增，master从1开始自增，每次增加2,即master生成的主键永远为奇数</span><br><span class="line"></span><br><span class="line">replicate-wild-do-table=zabbix_proxy.% #需要同步的表，这里是zabbix_proxy下的所有的表,用通配符%表示</span><br><span class="line"></span><br><span class="line">slave_skip_errors = 1062,1032,1060  #同步时跳过的错误编号，1062，1032，1060</span><br></pre></td></tr></table></figure>
+<p>重启mysql<code>sudo systemctl restart mysqld</code></p>
+<p>重新登陆mysql,为slave机器授予replication权限</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">grant</span> <span class="keyword">replication</span> <span class="keyword">slave</span> <span class="keyword">on</span> *.* <span class="keyword">to</span> <span class="string">'repl_user'</span>@<span class="string">'183.57.148.7'</span> <span class="keyword">identified</span> <span class="keyword">by</span> <span class="string">'MyNewPass111!'</span>;</span><br></pre></td></tr></table></figure>
+<p>查看master当前binlog状态信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show master status;</span><br></pre></td></tr></table></figure>
+<p><img src="https://tracerzzz.ltd/20180319152143914570938.png" alt="20180319152143914570938.png"></p>
+<p>在slaver机器上指定数据库master为183.57.148.5，并指定日志文件名字和位置，这样slaver就知道从哪里开始进行同步了。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">change master to master_host=<span class="string">'183.57.148.5'</span>,master_user=<span class="string">'repl_user'</span>,master_password=<span class="string">'MyNewPass111!'</span>,master_log_file=<span class="string">'mysql-bin.000001'</span>,  master_log_pos=154;</span><br></pre></td></tr></table></figure>
+<p>开启slaver</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span></span><br></pre></td></tr></table></figure>
+<p>接下来在slave机器上进行同样的操作，给maser授予复制权限，然后查看slave机器的binlog状态信息（每个机器的不一定一样，这里和maser的状态一样）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grant replication slave on *.* to &apos;repl_user&apos;@&apos;183.57.148.4&apos; identified by &apos;MyNewPass111!&apos;;</span><br></pre></td></tr></table></figure>
+<p><img src="https://tracerzzz.ltd/20180319152143914570938.png" alt="20180319152143914570938.png"></p>
+<p>在master机器上指定数据库master为183.57.148.7,并指定日志文件名字和位置</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">change</span> <span class="keyword">master</span> <span class="keyword">to</span> master_host=<span class="string">'183.57.148.7'</span>,master_user=<span class="string">'repl_user'</span>,master_password=<span class="string">'MyNewPass111!'</span>,master_log_file=<span class="string">'mysql-bin.000001'</span>,  master_log_pos=<span class="number">154</span>;</span><br></pre></td></tr></table></figure>
+<p>开启slaver</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span></span><br></pre></td></tr></table></figure>
+<h3 id="防火墙设置"><a href="#防火墙设置" class="headerlink" title="防火墙设置"></a>防火墙设置</h3><p>开启3306端口</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line"></span><br><span class="line">sudo firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<h3 id="验证数据库同步"><a href="#验证数据库同步" class="headerlink" title="验证数据库同步"></a>验证数据库同步</h3><p>在两台机器上分别查看slave状态</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">slave</span> <span class="keyword">status</span>\G;</span><br></pre></td></tr></table></figure>
+<p><img src="https://tracerzzz.ltd/20180322152171000488344.png" alt="20180322152171000488344.png"></p>
+<p>必须确保两个参数 Slave_IO_Running，Slave_SQL_Running为Yes</p>
+<p>都为yes后创建一个表，测试同步数据</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> <span class="keyword">IF</span> <span class="keyword">EXISTS</span> <span class="string">`test`</span>;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`test`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8;</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">test</span> <span class="keyword">values</span>();</span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">test</span>;</span><br></pre></td></tr></table></figure>
+<p>在master机器上执行上面的操作,返回结构，</p>
+<p><img src="https://tracerzzz.ltd/20180322152171091923913.png" alt="20180322152171091923913.png"></p>
+<p>在slave上也执行查询语句<code>select * from test;</code>,返回同样的结果。再在master上执行<code>insert test values();</code>返回结果如下</p>
+<p><img src="https://tracerzzz.ltd/20180322152171094816591.png" alt="20180322152171094816591.png"></p>
+<p>可以看到master上的所有自增主键都是奇数，接着在slave机器上执行<code>insert test values();</code>语句，结果为123，slave为偶数，从2开始，说明我们的自增配置已经生效，并且也进行了数据同步；</p>
+<h3 id="下载安装keepalived"><a href="#下载安装keepalived" class="headerlink" title="下载安装keepalived"></a>下载安装keepalived</h3><p><code>yum install keepalived</code>下载keepalived，keepalived只有一个配置文件，默认位于/etc/keepalived/keepalived.conf</p>
+<p>在配置之前先查看本地机器的网卡设置，使用<code>ip a</code>命令,得知当前ip使用的是网卡<strong>eth0</strong>,这个要根据<code>ip a</code>命令执行结果得到。<strong>网卡名称将在接下来的keepalived配置文件和防火墙设置中用到</strong>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/keepalived/keepalived.conf</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">! Configuration File for keepalived</span><br><span class="line">global_defs &#123;</span><br><span class="line">   router_id mysql-1</span><br><span class="line">&#125;</span><br><span class="line">#group </span><br><span class="line">vrrp_sync_group VG1 &#123;</span><br><span class="line">      group &#123;</span><br><span class="line">              HA_1</span><br><span class="line">               &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">vrrp_script check_mysql &#123;</span><br><span class="line">script /etc/keepalived/bin/check.sh</span><br><span class="line">interval 2   #执行间隔</span><br><span class="line">weight 20    #权重</span><br><span class="line">&#125;</span><br><span class="line">vrrp_instance HA_1 &#123;</span><br><span class="line">    state BACKUP  #两个节点最好都设置成BACKUP模式，避免因为意外情况下（比如脑裂）相互抢占导致往两个节点写入相同数据而引发冲突；</span><br><span class="line">    interface eth0  #网卡</span><br><span class="line">    virtual_router_id 51 #两台机器要一致</span><br><span class="line">    priority 100         #初始权重，master机器配置为100，slave配置为90</span><br><span class="line">    nopreempt            #不抢占，当slave机器正常工作时，master恢复正常后不抢占slave的vip</span><br><span class="line">    advert_int 1         #检查间隔，两台机器一致</span><br><span class="line">    authentication &#123; </span><br><span class="line">        auth_type PASS</span><br><span class="line">        auth_pass 1111   #两台一致</span><br><span class="line">    &#125;</span><br><span class="line">    virtual_ipaddress &#123;</span><br><span class="line">    	183.57.148.23  #vip</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">    track_script &#123;</span><br><span class="line">        check_mysql</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="keepalived的配置文件说明"><a href="#keepalived的配置文件说明" class="headerlink" title="keepalived的配置文件说明"></a>keepalived的配置文件说明</h4><p>vrrp_sync_group的应用场景为：如果路由有2个网段，一个内网，一个外网，每个网段开启一个VRRP实例，假设VRRP配置为检查内网，那么当外网出现问题 时，VRRPD会认为自己是健康的，则不会发送Master和Backup的切换，从而导致问题，Sync Group可以把两个实例都放入Sync Group，这样的话，Group 里任何一个实例出现问题都会发生切换。在这里其实并没有用到group，因为我们只设置了一个实例。</p>
+<p>vrrp_instance配置了检测脚本，vip等信息。两台机器的配置基本一致，除了priority参数（master设置为100，slave设置为90）。当master机器keepalivde启动后，将会去执行check.sh，每两秒执行一次，如果执行结果返回零，将在初始权重上加上20，maste的权重将达到120，同理，slave的权重为110（90+20）。这时，vip将漂移到master机器上。如果master上的check.sh执行结果返回1,那么master的权重将不会加20，那么master的权重为100，小于110，此时vip将漂移到slave机器上。keepalived就是这样根据权重的大小进行vip漂移的。另外，需要注意的是，<strong>检测脚本的权重一定要大于两台机器的初始权重</strong>，20&gt;(100-90),因为只有这样，检测脚本检测到服务异常时才能影响到权重的总和。</p>
+<p>vrrp_script配置了检测脚本和被检测的服务的权重，以及检测频率等。这里的关键是check.sh的实现。这个脚本这里主要是用来检测mysql是否正常服务，而正常服务的检测可以很简单，也可以很复杂，比如简单的检测msyqld服务是否正常启动，复杂的可以用msyl命令登陆数据库，执行sql语句，查看mysql的状态，进行判断。这里我们只是简单的检测了mysqld服务是否正常启动；</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">killall -0 mysqld zabbix_proxy</span><br></pre></td></tr></table></figure>
+<p>试了了killall命令，如果没有该命令需要安装<code>sudo yum install psmisc -y</code>,<code>-0</code> 是检测服务正常运行的信号量，如果正常运行返回0，不正常返回1，支持传入多个服务；</p>
+<p>同时需要注意的是记得为该脚本授权<code>chmod +x /etc/keepalived/bin/check.sh</code>;</p>
+<p><code>sudo vim check.sh</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">sudo killall -0 mysqld zabbix-proxy</span><br></pre></td></tr></table></figure>
+<h4 id="Keepalived防火墙设置"><a href="#Keepalived防火墙设置" class="headerlink" title="Keepalived防火墙设置"></a>Keepalived防火墙设置</h4><p>keepalived需要执行下面两条语句，对防火墙进行操作，才能确保两台keepalived能够进行选举,如果没有进行防火墙设置，则会出现两台机器都绑定了vip（脑裂）,原因就是两台机器没法进行通信，无法找到真正的master;</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo firewall-cmd --direct --permanent --add-rule ipv4 filter INPUT 0 --<span class="keyword">in</span>-interface eth0 --destination 224.0.0.18 --protocol vrrp -j ACCEPT</span><br><span class="line">sudo firewall-cmd --direct --permanent --add-rule ipv4 filter OUT 0 --out-interface eth0 --destination 224.0.0.18 --protocol vrrp -j ACCEPT</span><br><span class="line">sudo firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<h3 id="启动zabbi-proxy"><a href="#启动zabbi-proxy" class="headerlink" title="启动zabbi-proxy"></a>启动zabbi-proxy</h3><h4 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h4><p><code>vim /etc/zabbix/zabbix_proxy.conf</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">ProxyMode=1</span><br><span class="line">Server=124.126.126.143</span><br><span class="line">Hostname=183.57.148.23  #vip</span><br><span class="line">LogFile=/var/log/zabbix/zabbix_proxy.log</span><br><span class="line">LogFileSize=0</span><br><span class="line">PidFile=/var/run/zabbix/zabbix_proxy.pid</span><br><span class="line">SocketDir=/var/run/zabbix</span><br><span class="line">DBHost=localhost</span><br><span class="line">DBName=zabbix_proxy</span><br><span class="line">DBUser=zabbix</span><br><span class="line">DBPassword=Zabbix@ctzcdn4321!</span><br><span class="line">HeartbeatFrequency=10</span><br><span class="line">ConfigFrequency=60</span><br><span class="line">DataSenderFrequency=5</span><br><span class="line">StartPollers=50</span><br><span class="line">StartPollersUnreachable=10</span><br><span class="line">StartTrappers=10</span><br><span class="line">StartPingers=10</span><br><span class="line">SNMPTrapperFile=/var/log/snmptrap/snmptrap.log</span><br><span class="line">CacheSize=8G</span><br><span class="line">StartDBSyncers=10</span><br><span class="line">HistoryCacheSize=2G</span><br><span class="line">HistoryIndexCacheSize=2G</span><br><span class="line">Timeout=30</span><br><span class="line">#DebugLevel=4</span><br><span class="line">#ExternalScripts=/usr/lib/zabbix/externalscripts</span><br><span class="line">#LogSlowQueries=3000</span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#开启端口</span></span><br><span class="line">sudo firewall-cmd --zone=public --add-port=10051/tcp --permanent</span><br><span class="line">sudo firewall-cmd --reload</span><br><span class="line"><span class="comment">#启动zabbix-proxy</span></span><br><span class="line">systemctl start zabbix-proxy</span><br></pre></td></tr></table></figure>
+<h4 id="开机自动启动"><a href="#开机自动启动" class="headerlink" title="开机自动启动"></a>开机自动启动</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl enable zabbix-proxy</span><br><span class="line">systemctl enable mysqld</span><br></pre></td></tr></table></figure>
+<h3 id="测试方法"><a href="#测试方法" class="headerlink" title="测试方法"></a>测试方法</h3><p>1.查看vip绑定情况 ip a</p>
+<p>2.通过连接vip的mysql，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">msyql -h 183.57.148.23 -uroot -p</span><br><span class="line">show variables like &quot;%hostname%&quot;;</span><br></pre></td></tr></table></figure>
+<p>查看返回的hostaname,就知道了当前连接是哪台机器</p>
+<h3 id="MySQL出现同步延迟解决优化方法"><a href="#MySQL出现同步延迟解决优化方法" class="headerlink" title="MySQL出现同步延迟解决优化方法"></a><strong>MySQL出现同步延迟解决优化方法</strong></h3><p>1.主从复制的从库太多导致复制延迟<br>优化：建议从库数量3-5个为宜（具体看自己硬件配置）</p>
+<p>2.从库硬件比主库硬件差<br>优化：提升硬件性能</p>
+<p>3.慢SQL语句过多<br>优化：SQL语句执行时间太长，需要优化SQL语句（需要联系DBA开发共同商讨优化语句）</p>
+<p>4.主从复制的设计问题<br>优化：主从复制单线程，可以通过多线程IO方案解决；另外MySQL5.6.3支持多线程IO复制。</p>
+<p>5.主从库之间的网络延迟<br>优化：尽量链路短，提升端口带宽</p>
+<p>6.主库读写压力大<br>优化：前端加buffer和缓存。主从延迟不同步（延迟的多少，只要不影响业务就没事）</p>
+<p>7、业务设计缺陷导致延迟影响业务<br>优化：从库没有数据改读主库</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/数据库/" rel="tag"># 数据库</a>
+          
+            <a href="/tags/keepalived/" rel="tag"># keepalived</a>
+          
+            <a href="/tags/zabbix/" rel="tag"># zabbix</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/08/js/webpack快速入门/" rel="next" title="webpack快速入门">
+                <i class="fa fa-chevron-left"></i> webpack快速入门
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/15/git/git常用命令/" rel="prev" title="git常用命令">
+                git常用命令 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="https://tracerzzz.ltd/20180114151590788838213.jpg" alt="tracerZzz">
+            
+              <p class="site-author-name" itemprop="name">tracerZzz</p>
+              <p class="site-description motion-element" itemprop="description">想当木匠的程序员！</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/tracerZzz" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-globe"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:173439618@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-globe"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mysql双主模式"><span class="nav-number">1.</span> <span class="nav-text">Mysql双主模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Keepalived"><span class="nav-number">2.</span> <span class="nav-text">Keepalived</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#准备工作"><span class="nav-number">3.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#机器准备（centos7系统）"><span class="nav-number">3.1.</span> <span class="nav-text">机器准备（centos7系统）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装mysql-并初始化密码"><span class="nav-number">3.2.</span> <span class="nav-text">安装mysql 并初始化密码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下载zabbix-proxy，导入表结构"><span class="nav-number">4.</span> <span class="nav-text">下载zabbix-proxy，导入表结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改-etc-my-cnf文件，配置同步"><span class="nav-number">5.</span> <span class="nav-text">修改/etc/my.cnf文件，配置同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#防火墙设置"><span class="nav-number">6.</span> <span class="nav-text">防火墙设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#验证数据库同步"><span class="nav-number">7.</span> <span class="nav-text">验证数据库同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下载安装keepalived"><span class="nav-number">8.</span> <span class="nav-text">下载安装keepalived</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#keepalived的配置文件说明"><span class="nav-number">8.1.</span> <span class="nav-text">keepalived的配置文件说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keepalived防火墙设置"><span class="nav-number">8.2.</span> <span class="nav-text">Keepalived防火墙设置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动zabbi-proxy"><span class="nav-number">9.</span> <span class="nav-text">启动zabbi-proxy</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#修改配置文件"><span class="nav-number">9.1.</span> <span class="nav-text">修改配置文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#开机自动启动"><span class="nav-number">9.2.</span> <span class="nav-text">开机自动启动</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试方法"><span class="nav-number">10.</span> <span class="nav-text">测试方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL出现同步延迟解决优化方法"><span class="nav-number">11.</span> <span class="nav-text">MySQL出现同步延迟解决优化方法</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2016 &mdash; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">tracerZzz</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">19.6k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+  <div class="footer-custom">备案号 <a target="_blank" href="http://www.miitbeian.gov.cn/">京ICP备18058118号</a></div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+      <style>
+        a.gitment-editor-footer-tip { display: none; }
+        .gitment-container.gitment-footer-container { display: none; }
+      </style>
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            // id: window.location.pathname,
+            id: '1521779831000||post',
+            owner: 'tracerZzz',
+            repo: 'tracerZzz.github.io',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: '2c3a075d4bd5149674405ed17d02cb601fe84e89',
+            
+                client_id: '7bb4d9f6e3e295073e67'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

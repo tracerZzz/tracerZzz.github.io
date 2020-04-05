@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/favicon.ico?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="python,scrapy,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;在使用网易云音乐的时候，你是否想过大家都在听些什么，什么音乐被听得最多，作为一枚程序员，肯定是自己动手丰衣足食啦，那么，这篇文正将会告诉你如何使用scrapy+scrapy-splash来爬取网易云音乐的歌单，然后存入mongodb，通过播放量找到大家听得最多的歌单。">
+<meta name="keywords" content="python,scrapy">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用scrapy+scrapy-splash爬取网易云音乐歌单">
+<meta property="og:url" content="http://yoursite.com/2018/05/02/python/scrapy/index.html">
+<meta property="og:site_name" content="À Çraftman">
+<meta property="og:description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;在使用网易云音乐的时候，你是否想过大家都在听些什么，什么音乐被听得最多，作为一枚程序员，肯定是自己动手丰衣足食啦，那么，这篇文正将会告诉你如何使用scrapy+scrapy-splash来爬取网易云音乐的歌单，然后存入mongodb，通过播放量找到大家听得最多的歌单。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://tracerzzz.ltd/2018051515263513332302.png">
+<meta property="og:image" content="https://tracerzzz.ltd/20180515152636349896977.png">
+<meta property="og:image" content="https://tracerzzz.ltd/20180515152636458293531.png">
+<meta property="og:image" content="https://tracerzzz.ltd/20180515152636639480608.png">
+<meta property="og:image" content="https://tracerzzz.ltd/20180515152636644617456.png">
+<meta property="og:updated_time" content="2020-03-31T12:35:51.303Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用scrapy+scrapy-splash爬取网易云音乐歌单">
+<meta name="twitter:description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;在使用网易云音乐的时候，你是否想过大家都在听些什么，什么音乐被听得最多，作为一枚程序员，肯定是自己动手丰衣足食啦，那么，这篇文正将会告诉你如何使用scrapy+scrapy-splash来爬取网易云音乐的歌单，然后存入mongodb，通过播放量找到大家听得最多的歌单。">
+<meta name="twitter:image" content="https://tracerzzz.ltd/2018051515263513332302.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/05/02/python/scrapy/">
+
+
+
+
+
+  <title>使用scrapy+scrapy-splash爬取网易云音乐歌单 | À Çraftman</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+<div id="bgimg"></div>
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">À Çraftman</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">tracerZzz'blog</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+           
+             首页
+            
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+           
+            标签<span class="menuspan">15</span>
+           
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+           
+            分类<span class="menuspan">3</span>
+           
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+           
+            归档<span class="menuspan">14</span>
+            
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+           
+             关于
+            
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal post-block" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/02/python/scrapy/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="tracerZzz">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="https://tracerzzz.ltd/20180114151590788838213.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="À Çraftman">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">使用scrapy+scrapy-splash爬取网易云音乐歌单</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-02T16:37:11+08:00">
+                2018-05-02
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2020-03-31T20:35:51+08:00">
+                2020-03-31
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/coding/" itemprop="url" rel="index">
+                    <span itemprop="name">coding</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/05/02/python/scrapy/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/2018/05/02/python/scrapy/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,165
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://tracerzzz.ltd/2018051515263513332302.png" alt="2018051515263513332302.png"></p>
+<h3 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">scrapy startproject music163Scrapy</span><br><span class="line">cd music163Scrapy</span><br><span class="line">scrapy genspider Music163 163.com</span><br></pre></td></tr></table></figure>
+<p>文件目录如下：</p>
+<p><img src="https://tracerzzz.ltd/20180515152636349896977.png" alt="20180515152636349896977.png"></p>
+<h3 id="Items-py"><a href="#Items-py" class="headerlink" title="Items.py"></a>Items.py</h3><p>生成项目目录之后就可以开始编写代码啦，首先修改items.py，定义我们爬取网页后收集的字段。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> scrapy</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Scrapymusic163Item</span><span class="params">(scrapy.Item)</span>:</span></span><br><span class="line">    <span class="comment"># define the fields for your item here like:</span></span><br><span class="line">    <span class="comment"># name = scrapy.Field()</span></span><br><span class="line">    title = scrapy.Field()  <span class="comment"># 标题</span></span><br><span class="line">    link = scrapy.Field()  <span class="comment"># 链接</span></span><br><span class="line">    realLink=scrapy.Field() <span class="comment">#完整连接</span></span><br><span class="line">    desc = scrapy.Field()  <span class="comment"># 简述</span></span><br><span class="line">    listenCount = scrapy.Field() <span class="comment">#播放数量</span></span><br><span class="line">    posttime = scrapy.Field()  <span class="comment"># 发布时间</span></span><br><span class="line">    imgUrl=scrapy.Field()  <span class="comment"># 歌单封面图片url</span></span><br><span class="line">    <span class="comment"># pass</span></span><br></pre></td></tr></table></figure>
+<h3 id="Music163Spider"><a href="#Music163Spider" class="headerlink" title="Music163Spider"></a>Music163Spider</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Music163Spider</span><span class="params">(scrapy.Spider)</span>:</span></span><br><span class="line"></span><br><span class="line">    name = <span class="string">"music163"</span></span><br><span class="line">    allowed_domains = [<span class="string">"163.com"</span>]</span><br><span class="line">    start_urls = [</span><br><span class="line">        <span class="string">"https://music.163.com/discover/playlist/?order=new"</span>,</span><br><span class="line">        <span class="string">"https://music.163.com/#/discover/playlist/"</span></span><br><span class="line"></span><br><span class="line">    ]</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parse</span><span class="params">(self, response)</span>:</span></span><br><span class="line">        <span class="keyword">for</span> url <span class="keyword">in</span> self.start_urls:</span><br><span class="line">            <span class="keyword">yield</span> SplashRequest(url=url, callback=self.parseRequest,endpoint=<span class="string">'render.json'</span>, args=&#123;<span class="string">'wait'</span>: <span class="number">1</span>,<span class="string">'html'</span>:<span class="number">1</span>,<span class="string">'iframes'</span>: <span class="number">1</span>,<span class="string">'script'</span>:<span class="number">1</span>&#125;)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parseRequest</span><span class="params">(self,response)</span>:</span></span><br><span class="line">        iframe_html = response.data[<span class="string">'childFrames'</span>][<span class="number">0</span>][<span class="string">'html'</span>]</span><br><span class="line">        sel = parsel.Selector(iframe_html)</span><br><span class="line">        <span class="comment"># for se in sel.xpath('//div[@class="n-rcmd"]/div[@class="v-hd2"]/div[@class="tab"]/a'):</span></span><br><span class="line">        <span class="keyword">for</span> se <span class="keyword">in</span> sel.xpath(<span class="string">"//div[@id='cateListBox']/div[@class='bd']//a"</span>)[<span class="number">1</span>:]:</span><br><span class="line">            item = Scrapymusic163Item()</span><br><span class="line">            item[<span class="string">'title'</span>] = se.xpath(<span class="string">'text()'</span>)[<span class="number">0</span>].extract()</span><br><span class="line">            item[<span class="string">'link'</span>] = se.xpath(<span class="string">'@href'</span>)[<span class="number">0</span>].extract()</span><br><span class="line">            url = response.urljoin(item[<span class="string">'link'</span>])</span><br><span class="line">            <span class="keyword">yield</span> SplashRequest(url,self.parse_gedan,endpoint=<span class="string">'render.json'</span>, args=&#123;<span class="string">'wait'</span>: <span class="number">2</span>,<span class="string">'html'</span>:<span class="number">1</span>,<span class="string">'iframes'</span>: <span class="number">1</span>,<span class="string">'script'</span>:<span class="number">1</span>&#125;)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parse_gedan</span><span class="params">(self, response)</span>:</span></span><br><span class="line">        iframe_html = response.data[<span class="string">'childFrames'</span>][<span class="number">0</span>][<span class="string">'html'</span>]</span><br><span class="line">        sel = parsel.Selector(iframe_html)</span><br><span class="line">        <span class="keyword">for</span> se <span class="keyword">in</span> sel.xpath(<span class="string">'//ul[@id="m-pl-container"]/li'</span>):</span><br><span class="line">            item = Scrapymusic163Item()</span><br><span class="line">            item[<span class="string">'title'</span>] = se.xpath(<span class="string">'p[@class="dec"]/a/text()'</span>)[<span class="number">0</span>].extract()</span><br><span class="line">            item[<span class="string">'link'</span>] = se.xpath(<span class="string">'p[@class="dec"]/a/@href'</span>)[<span class="number">0</span>].extract()</span><br><span class="line">            url=response.urljoin(item[<span class="string">'link'</span>])</span><br><span class="line">            item[<span class="string">'realLink'</span>]=url</span><br><span class="line">            item[<span class="string">'listenCount'</span>]=se.xpath(<span class="string">'div/div/span[@class="nb"]/text()'</span>)[<span class="number">0</span>].extract()</span><br><span class="line">            <span class="keyword">if</span>(item[<span class="string">'listenCount'</span>] <span class="keyword">and</span> <span class="string">"万"</span> <span class="keyword">in</span> item[<span class="string">'listenCount'</span>]):</span><br><span class="line">                item[<span class="string">'listenCount'</span>]=int(item[<span class="string">'listenCount'</span>].replace(<span class="string">"万"</span>,<span class="string">"0000"</span>))</span><br><span class="line">            item[<span class="string">'listenCount'</span>]=int(item[<span class="string">'listenCount'</span>])</span><br><span class="line">            item[<span class="string">'imgUrl'</span>]=se.xpath(<span class="string">'div/img[@class="j-flag"]/@src'</span>)[<span class="number">0</span>].extract()</span><br><span class="line">            <span class="keyword">yield</span> item</span><br><span class="line">        next_pages = sel.xpath(<span class="string">'//a[@class="zbtn znxt"]'</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> next_pages:</span><br><span class="line">            url = response.urljoin(next_pages.xpath(<span class="string">'@href'</span>)[<span class="number">0</span>].extract())</span><br><span class="line">            <span class="keyword">yield</span> SplashRequest(url,self.parse_gedan,endpoint=<span class="string">'render.json'</span>, args=&#123;<span class="string">'wait'</span>: <span class="number">2</span>,<span class="string">'html'</span>:<span class="number">1</span>,<span class="string">'iframes'</span>: <span class="number">1</span>,<span class="string">'script'</span>:<span class="number">1</span>&#125;)</span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<p>上边这段代码是爬取歌单的关键。这里首先说下爬取的思路，打开网易云的网站，找到歌单连接,歌单分为热门和最新两种，每种又根据风格分为72小类，思路就是先爬取所有种类的连接</p>
+<p><img src="https://tracerzzz.ltd/20180515152636458293531.png" alt="20180515152636458293531.png"></p>
+<p>再打开每类歌单的网页</p>
+<p><img src="https://tracerzzz.ltd/20180515152636639480608.png" alt="20180515152636639480608.png"></p>
+<p>从上面的图片中，我们可以看到每首歌的标题,连接，收听次数等信息。</p>
+<h3 id="scrapy-splash"><a href="#scrapy-splash" class="headerlink" title="scrapy-splash"></a>scrapy-splash</h3><p>由于网易云的连接嵌套了动态链接的iframe,这里使用了scrapy-splash来动态渲染iframe，相当于让scrapy-splash来执行网页中的js，并将渲染结果返给我们，这样我们就可以继续使用xpath来筛选自己感兴趣的内容了。</p>
+<h4 id="docker-部署scrapy-splash"><a href="#docker-部署scrapy-splash" class="headerlink" title="docker 部署scrapy-splash"></a>docker 部署scrapy-splash</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docer pull  scrapinghub/splash</span><br><span class="line"></span><br><span class="line">docker run -p  8050:8050 scrapinghub/splash</span><br></pre></td></tr></table></figure>
+<h4 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim setting.py</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#SPLASH SERVER</span></span><br><span class="line">SPLASH_URL = <span class="string">'http://127.0.0.1:8050/render.json'</span></span><br><span class="line"></span><br><span class="line">DOWNLOADER_MIDDLEWARES = &#123;</span><br><span class="line">    <span class="string">'scrapy_splash.SplashCookiesMiddleware'</span>: <span class="number">723</span>,</span><br><span class="line">    <span class="string">'scrapy_splash.SplashMiddleware'</span>: <span class="number">725</span>,</span><br><span class="line">    <span class="string">'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware'</span>: <span class="number">810</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">SPIDER_MIDDLEWARES = &#123;</span><br><span class="line">    <span class="string">'scrapy_splash.SplashDeduplicateArgsMiddleware'</span>: <span class="number">100</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DUPEFILTER_CLASS = <span class="string">'scrapy_splash.SplashAwareDupeFilter'</span></span><br><span class="line"></span><br><span class="line">HTTPCACHE_STORAGE = <span class="string">'scrapy_splash.SplashAwareFSCacheStorage'</span></span><br></pre></td></tr></table></figure>
+<p>详细参见<a href="http://splash.readthedocs.io/en/latest/" target="_blank" rel="noopener">scrapy-splash文档</a></p>
+<p>需要注意的是在使用scrapy-splash时需要用SplashRequest来代替scrapy原始的request,这是scrapy-splash对scrapy的request进行了进一步的封装，支持了更多的参数，同时也支持将request的返回配置为不同的格式，如html,json等。这里使用了json返回。</p>
+<h4 id="mongodb"><a href="#mongodb" class="headerlink" title="mongodb"></a>mongodb</h4><p>依赖<a href="https://github.com/sebdah/scrapy-mongodb" target="_blank" rel="noopener">scrapy-mongodb</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">ITEM_PIPELINES = &#123;</span><br><span class="line">  <span class="string">"scrapy_mongodb.MongoDBPipeline"</span>:<span class="number">900</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">MONGODB_URI = <span class="string">'mongodb://root:'</span>+urllib.parse.quote(<span class="string">'MyNewPass+@321'</span>)+<span class="string">'@localhost:27017'</span></span><br><span class="line">MONGODB_DATABASE = <span class="string">'scrapy'</span></span><br><span class="line"><span class="comment"># MONGODB_COLLECTION = 'my_items'</span></span><br><span class="line"><span class="comment"># 连接不重复，避免重复爬取</span></span><br><span class="line">MONGODB_UNIQUE_KEY = <span class="string">'realLink'</span></span><br><span class="line"></span><br><span class="line">MONGODB_SEPARATE_COLLECTIONS = <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+<h3 id="爬取结果"><a href="#爬取结果" class="headerlink" title="爬取结果"></a>爬取结果</h3><p><img src="https://tracerzzz.ltd/20180515152636644617456.png" alt="20180515152636644617456.png"></p>
+<p>共爬取了15万左右的歌单。下面是播放次数最多的五个歌单</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 1 */</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"_id"</span> : ObjectId(<span class="string">"5aea7a036d5b76bf8d42659d"</span>),</span><br><span class="line">    <span class="attr">"title"</span> : <span class="string">"华语速爆新歌"</span>,</span><br><span class="line">    <span class="attr">"link"</span> : <span class="string">"/playlist?id=924680166"</span>,</span><br><span class="line">    <span class="attr">"realLink"</span> : <span class="string">"https://music.163.com/playlist?id=924680166"</span>,</span><br><span class="line">    <span class="attr">"listenCount"</span> : <span class="number">152900000</span>,</span><br><span class="line">    <span class="attr">"imgUrl"</span> : <span class="string">"http://p1.music.126.net/Zcv4NgK5T0bd1yMzAFp8Iw==/109951163276364917.jpg?param=140y140"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 2 */</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"_id"</span> : ObjectId(<span class="string">"5aea78a56d5b76bf8d422179"</span>),</span><br><span class="line">    <span class="attr">"title"</span> : <span class="string">"【节奏控】那些超带感的音乐（典藏版）"</span>,</span><br><span class="line">    <span class="attr">"link"</span> : <span class="string">"/playlist?id=306397077"</span>,</span><br><span class="line">    <span class="attr">"realLink"</span> : <span class="string">"https://music.163.com/playlist?id=306397077"</span>,</span><br><span class="line">    <span class="attr">"listenCount"</span> : <span class="number">140930000</span>,</span><br><span class="line">    <span class="attr">"imgUrl"</span> : <span class="string">"http://p1.music.126.net/RnOZHM0BNxXuy-RwQQI5BA==/3313928048221849.jpg?param=140y140"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 3 */</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"_id"</span> : ObjectId(<span class="string">"5aea7fd16d5b76bf8d43b0db"</span>),</span><br><span class="line">    <span class="attr">"title"</span> : <span class="string">"【旋律控】超级好听的外文歌"</span>,</span><br><span class="line">    <span class="attr">"link"</span> : <span class="string">"/playlist?id=310970433"</span>,</span><br><span class="line">    <span class="attr">"realLink"</span> : <span class="string">"https://music.163.com/playlist?id=310970433"</span>,</span><br><span class="line">    <span class="attr">"listenCount"</span> : <span class="number">101740000</span>,</span><br><span class="line">    <span class="attr">"imgUrl"</span> : <span class="string">"http://p1.music.126.net/2MsstS-M9w5-li0aRy3sUQ==/1380986606815861.jpg?param=140y140"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 4 */</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"_id"</span> : ObjectId(<span class="string">"5aea95f76d5b76bf8d46289a"</span>),</span><br><span class="line">    <span class="attr">"title"</span> : <span class="string">"那些只听前奏就中毒的英文歌"</span>,</span><br><span class="line">    <span class="attr">"link"</span> : <span class="string">"/playlist?id=37432514"</span>,</span><br><span class="line">    <span class="attr">"realLink"</span> : <span class="string">"https://music.163.com/playlist?id=37432514"</span>,</span><br><span class="line">    <span class="attr">"listenCount"</span> : <span class="number">95420000</span>,</span><br><span class="line">    <span class="attr">"imgUrl"</span> : <span class="string">"http://p1.music.126.net/mQy3lRj6YJ0TW3fM9v85YA==/6643249256145165.jpg?param=140y140"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 5 */</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"_id"</span> : ObjectId(<span class="string">"5aea789a6d5b76bf8d42194c"</span>),</span><br><span class="line">    <span class="attr">"title"</span> : <span class="string">"【欧美男团】秒杀耳朵系列"</span>,</span><br><span class="line">    <span class="attr">"link"</span> : <span class="string">"/playlist?id=117377955"</span>,</span><br><span class="line">    <span class="attr">"realLink"</span> : <span class="string">"https://music.163.com/playlist?id=117377955"</span>,</span><br><span class="line">    <span class="attr">"listenCount"</span> : <span class="number">71150000</span>,</span><br><span class="line">    <span class="attr">"imgUrl"</span> : <span class="string">"http://p1.music.126.net/FJAxNkFoq3dGiS9tz_bGgQ==/3405187512421439.jpg?param=140y140"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="github地址"><a href="#github地址" class="headerlink" title="github地址"></a>github地址</h3><p><a href="https://github.com/tracerZzz/music163Scrapy" target="_blank" rel="noopener">https://github.com/tracerZzz/music163Scrapy</a></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="http://scrapy-chs.readthedocs.io/zh_CN/latest/intro/tutorial.html" target="_blank" rel="noopener">scrapy文档</a></p>
+<p><a href="http://splash.readthedocs.io/en/latest/" target="_blank" rel="noopener">scrapy-splash文档</a></p>
+<p><a href="https://github.com/sebdah/scrapy-mongodb" target="_blank" rel="noopener">scrapy-mongodb</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/python/" rel="tag"># python</a>
+          
+            <a href="/tags/scrapy/" rel="tag"># scrapy</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/15/git/git常用命令/" rel="next" title="git常用命令">
+                <i class="fa fa-chevron-left"></i> git常用命令
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/06/16/架构/压力测试工具webbench压测nginx/" rel="prev" title="压力测试工具webbench安装与使用">
+                压力测试工具webbench安装与使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="https://tracerzzz.ltd/20180114151590788838213.jpg" alt="tracerZzz">
+            
+              <p class="site-author-name" itemprop="name">tracerZzz</p>
+              <p class="site-description motion-element" itemprop="description">想当木匠的程序员！</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/tracerZzz" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-globe"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:173439618@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-globe"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建项目"><span class="nav-number">1.</span> <span class="nav-text">创建项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Items-py"><span class="nav-number">2.</span> <span class="nav-text">Items.py</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Music163Spider"><span class="nav-number">3.</span> <span class="nav-text">Music163Spider</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scrapy-splash"><span class="nav-number">4.</span> <span class="nav-text">scrapy-splash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#docker-部署scrapy-splash"><span class="nav-number">4.1.</span> <span class="nav-text">docker 部署scrapy-splash</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置"><span class="nav-number">4.2.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mongodb"><span class="nav-number">4.3.</span> <span class="nav-text">mongodb</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#爬取结果"><span class="nav-number">5.</span> <span class="nav-text">爬取结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#github地址"><span class="nav-number">6.</span> <span class="nav-text">github地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2016 &mdash; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">tracerZzz</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">19.6k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+  <div class="footer-custom">备案号 <a target="_blank" href="http://www.miitbeian.gov.cn/">京ICP备18058118号</a></div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+      <style>
+        a.gitment-editor-footer-tip { display: none; }
+        .gitment-container.gitment-footer-container { display: none; }
+      </style>
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            // id: window.location.pathname,
+            id: '1525250231000||post',
+            owner: 'tracerZzz',
+            repo: 'tracerZzz.github.io',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: '2c3a075d4bd5149674405ed17d02cb601fe84e89',
+            
+                client_id: '7bb4d9f6e3e295073e67'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

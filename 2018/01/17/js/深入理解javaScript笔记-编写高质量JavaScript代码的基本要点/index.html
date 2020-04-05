@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/favicon.ico?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="js,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="如何编写高质量的js代码，这篇文章记录了js编码过程中常见的一些问题，包括变量提升，变量命名，函数闭包等。遵从这些优秀的编程规则，有利于使我们的代码，更好维护，更优雅，避免未知的错误发生。">
+<meta name="keywords" content="js">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解javaScript笔记-编写高质量JavaScript代码的基本要点">
+<meta property="og:url" content="http://yoursite.com/2018/01/17/js/深入理解javaScript笔记-编写高质量JavaScript代码的基本要点/index.html">
+<meta property="og:site_name" content="À Çraftman">
+<meta property="og:description" content="如何编写高质量的js代码，这篇文章记录了js编码过程中常见的一些问题，包括变量提升，变量命名，函数闭包等。遵从这些优秀的编程规则，有利于使我们的代码，更好维护，更优雅，避免未知的错误发生。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-31T12:35:51.302Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解javaScript笔记-编写高质量JavaScript代码的基本要点">
+<meta name="twitter:description" content="如何编写高质量的js代码，这篇文章记录了js编码过程中常见的一些问题，包括变量提升，变量命名，函数闭包等。遵从这些优秀的编程规则，有利于使我们的代码，更好维护，更优雅，避免未知的错误发生。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/01/17/js/深入理解javaScript笔记-编写高质量JavaScript代码的基本要点/">
+
+
+
+
+
+  <title>深入理解javaScript笔记-编写高质量JavaScript代码的基本要点 | À Çraftman</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+<div id="bgimg"></div>
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">À Çraftman</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">tracerZzz'blog</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+           
+             首页
+            
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+           
+            标签<span class="menuspan">15</span>
+           
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+           
+            分类<span class="menuspan">3</span>
+           
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+           
+            归档<span class="menuspan">14</span>
+            
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+           
+             关于
+            
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal post-block" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/17/js/深入理解javaScript笔记-编写高质量JavaScript代码的基本要点/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="tracerZzz">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="https://tracerzzz.ltd/20180114151590788838213.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="À Çraftman">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入理解javaScript笔记-编写高质量JavaScript代码的基本要点</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-17T13:54:11+08:00">
+                2018-01-17
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2020-03-31T20:35:51+08:00">
+                2020-03-31
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/coding/" itemprop="url" rel="index">
+                    <span itemprop="name">coding</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/01/17/js/深入理解javaScript笔记-编写高质量JavaScript代码的基本要点/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/2018/01/17/js/深入理解javaScript笔记-编写高质量JavaScript代码的基本要点/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2,452
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="最小全局变量-Minimizing-Globals"><a href="#最小全局变量-Minimizing-Globals" class="headerlink" title="最小全局变量(Minimizing Globals)"></a>最小全局变量(Minimizing Globals)</h3><p><strong>JavaScript通过函数管理作用域。在函数内部声明的变量只在这个函数内部，函数外面不可用。</strong></p>
+<p>浏览器中的全局变量:this相当于window</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.h=<span class="string">"hello"</span></span><br><span class="line"><span class="comment">//"hello"</span></span><br><span class="line"><span class="built_in">window</span>.h</span><br><span class="line"><span class="comment">//"hello"</span></span><br></pre></td></tr></table></figure>
+<h3 id="全局变量的问题"><a href="#全局变量的问题" class="headerlink" title="全局变量的问题"></a>全局变量的问题</h3><p>全局变量的问题在于，你的JavaScript应用程序和web页面上的所有代码都共享了这些全局变量，他们住在同一个全局命名空间，所以当程序的两个不同部分定义同名但不同作用的全局变量的时候，命名冲突在所难免。</p>
+<h4 id="反例一：不声明的任何变量都会成为一个全局对象属性"><a href="#反例一：不声明的任何变量都会成为一个全局对象属性" class="headerlink" title="反例一：不声明的任何变量都会成为一个全局对象属性"></a>反例一：不声明的任何变量都会成为一个全局对象属性</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//隐式创建全局变量反例1</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sum</span>(<span class="params">x, y</span>) </span>&#123;</span><br><span class="line">   <span class="comment">// 不推荐写法: 隐式全局变量</span></span><br><span class="line">   result = x + y;</span><br><span class="line">   <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"><span class="literal">undefined</span></span><br><span class="line">sum(<span class="number">1</span>,<span class="number">1</span>)</span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="built_in">window</span>.result</span><br><span class="line"><span class="number">2</span></span><br></pre></td></tr></table></figure>
+<p>此段代码中的<code>result</code>没有声明。代码照样运作正常，但在调用函数后你最后的结果就是多一个全局变量result。</p>
+<p>经验法则是始终使用var声明变量</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sum</span>(<span class="params">x, y</span>) </span>&#123;</span><br><span class="line">   <span class="keyword">var</span> result = x + y;</span><br><span class="line">   <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="反例二：使用任务链进行部分var声明"><a href="#反例二：使用任务链进行部分var声明" class="headerlink" title="反例二：使用任务链进行部分var声明"></a>反例二：使用任务链进行部分var声明</h4><p>另一个创建隐式全局变量的反例就是使用任务链进行部分var声明。下面的片段中，<code>a</code>是本地变量但是<code>b</code>确实全局变量，这可能不是你希望发生的：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">   <span class="keyword">var</span> a = b = <span class="number">0</span>;</span><br><span class="line">   <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line">foo()</span><br><span class="line"><span class="literal">undefined</span> <span class="comment">//执行foo()返回undefined</span></span><br><span class="line"><span class="built_in">window</span>.b <span class="comment">//发现b其实为全局变量，倒霉</span></span><br><span class="line"><span class="number">0</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>此现象发生的原因在于这个从右到左的赋值，首先，是赋值表达式<code>b = 0</code>，此情况下b是未声明的。这个表达式的返回值是0，然后这个0就分配给了通过var定义的这个局部变量a。类似于<code>var a = (b = 0);</code></p>
+</blockquote>
+<p><strong>先准备好声明变量，再使用链分配是比较好的做法</strong></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">   <span class="keyword">var</span> a, b;</span><br><span class="line">   <span class="comment">// ... a = b = 0; // 两个均局部变量</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="忘记var的副作用-Side-Effects-When-Forgetting-var"><a href="#忘记var的副作用-Side-Effects-When-Forgetting-var" class="headerlink" title="忘记var的副作用(Side Effects When Forgetting var)"></a>忘记var的副作用(Side Effects When Forgetting var)</h3><ul>
+<li>通过var创建的全局变量（任何函数之外的程序中创建）是不能被删除的。</li>
+<li>无var创建的隐式全局变量（无视是否在函数中创建）是能被删除的。</li>
+</ul>
+<p>隐式全局变量和明确定义的全局变量间有些小的差异，就是通过<code>delete</code>操作符让变量未定义的能力</p>
+<p><strong>这表明，在技术上，隐式全局变量并不是真正的全局变量，但它们是全局对象的属性。属性是可以通过<code>delete</code>操作符删除的，而变量是不能的：</strong></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义三个全局变量</span></span><br><span class="line"><span class="keyword">var</span> global_var = <span class="number">1</span>;</span><br><span class="line">global_novar = <span class="number">2</span>; <span class="comment">// 反面教材</span></span><br><span class="line">(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">   global_fromfunc = <span class="number">3</span>; <span class="comment">// 反面教材</span></span><br><span class="line">&#125;());</span><br><span class="line"></span><br><span class="line"><span class="comment">// 试图删除</span></span><br><span class="line"><span class="keyword">delete</span> global_var; <span class="comment">// false</span></span><br><span class="line"><span class="keyword">delete</span> global_novar; <span class="comment">// true</span></span><br><span class="line"><span class="keyword">delete</span> global_fromfunc; <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试该删除</span></span><br><span class="line"><span class="keyword">typeof</span> global_var; <span class="comment">// "number"</span></span><br><span class="line"><span class="keyword">typeof</span> global_novar; <span class="comment">// "global_nar is not defined"</span></span><br><span class="line"><span class="keyword">typeof</span> global_fromfunc; <span class="comment">// "global_fromfunc is not defined"</span></span><br></pre></td></tr></table></figure>
+<h3 id="单var形式（Single-var-Pattern）"><a href="#单var形式（Single-var-Pattern）" class="headerlink" title="单var形式（Single var Pattern）"></a>单var形式（Single var Pattern）</h3><p>在函数顶部使用单var语句是比较有用的一种形式，其好处在于：</p>
+<ul>
+<li>提供了一个单一的地方去寻找功能所需要的所有局部变量</li>
+<li>防止变量在定义之前使用的逻辑错误</li>
+<li>帮助你记住声明的全局变量，因此较少了全局变量//zxx:此处我自己是有点晕乎的…</li>
+<li>少代码（类型啊传值啊单线完成）</li>
+</ul>
+<p>单var形式长得就像下面这个样子：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">func</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">   <span class="keyword">var</span> a = <span class="number">1</span>,</span><br><span class="line">       b = <span class="number">2</span>,</span><br><span class="line">       sum = a + b,</span><br><span class="line">       myobject = &#123;&#125;,</span><br><span class="line">       i,</span><br><span class="line">       j;</span><br><span class="line">   <span class="comment">// function body...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="变量提升（Hoisting）"><a href="#变量提升（Hoisting）" class="headerlink" title="变量提升（Hoisting）"></a>变量提升（Hoisting）</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">myname = <span class="string">"global"</span>; <span class="comment">// 全局变量,不建议这么写，应该写成 var name = "global"</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">func</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    alert(myname); <span class="comment">// "undefined"</span></span><br><span class="line">    <span class="keyword">var</span> myname = <span class="string">"local"</span>;</span><br><span class="line">    alert(myname); <span class="comment">// "local"</span></span><br><span class="line">&#125;</span><br><span class="line">func();</span><br><span class="line"><span class="comment">//alert: undefined</span></span><br><span class="line"><span class="comment">//alert: local</span></span><br></pre></td></tr></table></figure>
+<p>上边的代码可以拆分了来理解</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">myname = <span class="string">"global"</span>; <span class="comment">// 全局变量,不建议这么写，应该写成 var name = "global"</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">func</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myname=<span class="literal">undefined</span></span><br><span class="line">    alert(myname); <span class="comment">// "undefined"</span></span><br><span class="line">    myname = <span class="string">"local"</span>;</span><br><span class="line">    alert(myname); <span class="comment">// "local"</span></span><br><span class="line">&#125;</span><br><span class="line">func();</span><br></pre></td></tr></table></figure>
+<p>myname变量的声明得到了提升，而在声明的时候是没有被赋值的。在这里还要注意到全局变量和函数内的变量同名，由于js的作用域机制，首先在函数内部找寻找变量，如果没有找到，再去上级（作用域）去找。这里直接找到了，也就不会出现弹出框里显示global的情况。</p>
+<h3 id="for循环-for-Loops"><a href="#for循环-for-Loops" class="headerlink" title="for循环(for Loops)"></a>for循环(for Loops)</h3><p>在<code>for</code>循环中，你可以循环取得数组或是数组类似对象的值，譬如<code>arguments</code>和<code>HTMLCollection</code>对象。</p>
+<p><code>HTMLCollections</code>指的是DOM方法返回的对象，例如：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.getElementsByName()</span><br><span class="line"><span class="built_in">document</span>.getElementsByClassName()</span><br><span class="line"><span class="built_in">document</span>.getElementsByTagName()</span><br><span class="line"><span class="built_in">document</span>.images: 页面上所有的图片元素</span><br><span class="line"><span class="built_in">document</span>.links : 所有a标签元素</span><br><span class="line"><span class="built_in">document</span>.forms : 所有表单</span><br><span class="line"><span class="built_in">document</span>.forms[<span class="number">0</span>].elements : 页面上第一个表单中的所有域</span><br></pre></td></tr></table></figure>
+<p>通常的循环形式如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 次佳的循环</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; myarray.length; i++) &#123;</span><br><span class="line">   <span class="comment">// 使用myarray[i]做点什么</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>这种形式的循环的不足在于每次循环的时候数组的长度都要去获取下。这回降低你的代码，尤其当<code>myarray</code>不是数组，而是一个<code>HTMLCollection</code>对象的时候。</strong>而DOM操作一般都是比较昂贵的。</p>
+<p>这就是为什么当你循环获取值时，缓存数组(或集合)的长度是比较好的形式，正如下面代码显示的：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>, max = myarray.length; i &lt; max; i++) &#123;</span><br><span class="line">   <span class="comment">// 使用myarray[i]做点什么</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="for-in循环-for-in-Loops"><a href="#for-in循环-for-in-Loops" class="headerlink" title="for-in循环(for-in Loops)"></a>for-in循环(for-in Loops)</h3><p><strong><code>for-in</code>循环应该用在非数组对象的遍历上，使用<code>for-in</code>进行循环也被称为“枚举”。</strong></p>
+<p>从技术上将，你可以使用<code>for-in</code>循环数组（因为JavaScript中数组也是对象），但这是不推荐的。因为如果数组对象已被自定义的功能增强，就可能发生逻辑错误。另外，在for-in中，属性列表的顺序（序列）是不能保证的。所以最好数组使用正常的for循环，对象使用for-in循环。</p>
+<h3 id="（不）扩展内置原型-Not-Augmenting-Built-in-Prototypes"><a href="#（不）扩展内置原型-Not-Augmenting-Built-in-Prototypes" class="headerlink" title="（不）扩展内置原型((Not) Augmenting Built-in Prototypes)"></a>（不）扩展内置原型((Not) Augmenting Built-in Prototypes)</h3><p>扩增构造函数的prototype属性是个很强大的增加功能的方法，但有时候它太强大了</p>
+<p>增加内置的构造函数原型（如Object(), Array(), 或Function()）挺诱人的，但是这严重降低了可维护性，因为它让你的代码变得难以预测。使用你代码的其他开发人员很可能更期望使用内置的 JavaScript方法来持续不断地工作，而不是你另加的方法。</p>
+<p>另外，属性添加到原型中，可能会导致不使用hasOwnProperty属性时在循环中显示出来，这会造成混乱。</p>
+<p>因此，不增加内置原型是最好的。你可以指定一个规则，仅当下面的条件均满足时例外：</p>
+<ul>
+<li><p>可以预期将来的ECMAScript版本或是JavaScript实现将一直将此功能当作内置方法来实现。例如，你可以添加ECMAScript 5中描述的方法，一直到各个浏览器都迎头赶上。这种情况下，你只是提前定义了有用的方法。</p>
+</li>
+<li><p>如果您检查您的自定义属性或方法已不存在——也许已经在代码的其他地方实现或已经是你支持的浏览器JavaScript引擎部分。</p>
+</li>
+<li><p>你清楚地文档记录并和团队交流了变化。</p>
+</li>
+</ul>
+<p>如果这三个条件得到满足，你可以给原型进行自定义的添加，形式如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">typeof</span> <span class="built_in">Object</span>.protoype.myMethod !== <span class="string">"function"</span>) &#123;</span><br><span class="line">   <span class="built_in">Object</span>.protoype.myMethod = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="comment">// 实现...</span></span><br><span class="line">   &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="switch模式-switch-Pattern"><a href="#switch模式-switch-Pattern" class="headerlink" title="switch模式(switch Pattern)"></a>switch模式(switch Pattern)</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> inspect_me = <span class="number">0</span>,</span><br><span class="line">    result = <span class="string">''</span>;</span><br><span class="line"><span class="keyword">switch</span> (inspect_me) &#123;</span><br><span class="line"><span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">   result = <span class="string">"zero"</span>;</span><br><span class="line">   <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">   result = <span class="string">"one"</span>;</span><br><span class="line">   <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">default</span>:</span><br><span class="line">   result = <span class="string">"unknown"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个简单的例子中所遵循的风格约定如下：</p>
+<ul>
+<li>每个case和switch对齐（花括号缩进规则除外）</li>
+<li>每个case中代码缩进</li>
+<li><strong>每个case以break清除结束</strong></li>
+<li><strong>避免贯穿（故意忽略break）。如果你非常确信贯穿是最好的方法，务必记录此情况，因为对于有些阅读人而言，它们可能看起来是错误的。</strong></li>
+<li><strong>以default结束switch：确保总有健全的结果，即使无情况匹配。</strong></li>
+</ul>
+<h3 id="避免隐式类型转换-Avoiding-Implied-Typecasting"><a href="#避免隐式类型转换-Avoiding-Implied-Typecasting" class="headerlink" title="避免隐式类型转换(Avoiding Implied Typecasting )"></a>避免隐式类型转换(Avoiding Implied Typecasting )</h3><p>JavaScript的变量在比较的时候会隐式类型转换。这就是为什么一些诸如：false == 0 或 “” == 0 返回的结果是true。为避免引起混乱的隐含类型转换，在你比较值和表达式类型的时候始终使用===和!==操作符。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> zero = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">if</span> (zero === <span class="literal">false</span>) &#123;</span><br><span class="line">   <span class="comment">// 不执行，因为zero为0, 而不是false</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 反面示例</span></span><br><span class="line"><span class="keyword">if</span> (zero == <span class="literal">false</span>) &#123;</span><br><span class="line">   <span class="comment">// 执行了...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="parseInt-下的数值转换-Number-Conversions-with-parseInt"><a href="#parseInt-下的数值转换-Number-Conversions-with-parseInt" class="headerlink" title="parseInt()下的数值转换(Number Conversions with parseInt())"></a>parseInt()下的数值转换(Number Conversions with parseInt())</h3><p>使用parseInt()进行转换时，加上第二个参数，即标明转换进制。</p>
+<h3 id="分隔单词-Separating-Words"><a href="#分隔单词-Separating-Words" class="headerlink" title="分隔单词(Separating Words)"></a>分隔单词(Separating Words)</h3><p>当你的变量或是函数名有多个单词的时候，最好单词的分离遵循统一的规范，有一个常见的做法被称作“驼峰(Camel)命名法”，就是单词小写，每个单词的首字母大写。</p>
+<p>对于构造函数，可以使用大驼峰式命名法(upper camel case)，如<code>MyConstructor()</code>。对于函数和方法名称，你可以使用小驼峰式命名法(lower camel case)，像是<code>myFunction(), calculateArea()</code>和<code>getFirstName()</code>。</p>
+<p>开发者通常使用小驼峰式命名法，但还有另外一种做法就是所有单词小写以下划线连接：例如，<code>first_name, favorite_bands,</code>和<code>old_company_name</code>，这种标记法帮你直观地区分函数和其他标识——原型和对象。</p>
+<p>参考连接：<a href="http://www.cnblogs.com/TomXu/archive/2011/12/28/2286877.html" target="_blank" rel="noopener">http://www.cnblogs.com/TomXu/archive/2011/12/28/2286877.html</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/js/" rel="tag"># js</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/15/nginx/nginx使用/" rel="next" title="nginx使用">
+                <i class="fa fa-chevron-left"></i> nginx使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/08/js/webpack快速入门/" rel="prev" title="webpack快速入门">
+                webpack快速入门 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="https://tracerzzz.ltd/20180114151590788838213.jpg" alt="tracerZzz">
+            
+              <p class="site-author-name" itemprop="name">tracerZzz</p>
+              <p class="site-description motion-element" itemprop="description">想当木匠的程序员！</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/tracerZzz" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-globe"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:173439618@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-globe"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#最小全局变量-Minimizing-Globals"><span class="nav-number">1.</span> <span class="nav-text">最小全局变量(Minimizing Globals)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#全局变量的问题"><span class="nav-number">2.</span> <span class="nav-text">全局变量的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#反例一：不声明的任何变量都会成为一个全局对象属性"><span class="nav-number">2.1.</span> <span class="nav-text">反例一：不声明的任何变量都会成为一个全局对象属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#反例二：使用任务链进行部分var声明"><span class="nav-number">2.2.</span> <span class="nav-text">反例二：使用任务链进行部分var声明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#忘记var的副作用-Side-Effects-When-Forgetting-var"><span class="nav-number">3.</span> <span class="nav-text">忘记var的副作用(Side Effects When Forgetting var)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#单var形式（Single-var-Pattern）"><span class="nav-number">4.</span> <span class="nav-text">单var形式（Single var Pattern）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#变量提升（Hoisting）"><span class="nav-number">5.</span> <span class="nav-text">变量提升（Hoisting）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#for循环-for-Loops"><span class="nav-number">6.</span> <span class="nav-text">for循环(for Loops)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#for-in循环-for-in-Loops"><span class="nav-number">7.</span> <span class="nav-text">for-in循环(for-in Loops)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#（不）扩展内置原型-Not-Augmenting-Built-in-Prototypes"><span class="nav-number">8.</span> <span class="nav-text">（不）扩展内置原型((Not) Augmenting Built-in Prototypes)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#switch模式-switch-Pattern"><span class="nav-number">9.</span> <span class="nav-text">switch模式(switch Pattern)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#避免隐式类型转换-Avoiding-Implied-Typecasting"><span class="nav-number">10.</span> <span class="nav-text">避免隐式类型转换(Avoiding Implied Typecasting )</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#parseInt-下的数值转换-Number-Conversions-with-parseInt"><span class="nav-number">11.</span> <span class="nav-text">parseInt()下的数值转换(Number Conversions with parseInt())</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分隔单词-Separating-Words"><span class="nav-number">12.</span> <span class="nav-text">分隔单词(Separating Words)</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2016 &mdash; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">tracerZzz</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">19.6k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+  <div class="footer-custom">备案号 <a target="_blank" href="http://www.miitbeian.gov.cn/">京ICP备18058118号</a></div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+      <style>
+        a.gitment-editor-footer-tip { display: none; }
+        .gitment-container.gitment-footer-container { display: none; }
+      </style>
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            // id: window.location.pathname,
+            id: '1516168451000||post',
+            owner: 'tracerZzz',
+            repo: 'tracerZzz.github.io',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: '2c3a075d4bd5149674405ed17d02cb601fe84e89',
+            
+                client_id: '7bb4d9f6e3e295073e67'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
