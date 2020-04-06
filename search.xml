@@ -391,9 +391,9 @@ and the repository exists.
         <category>架构</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>keepalived</tag>
         <tag>zabbix</tag>
+        <tag>数据库</tag>
       </tags>
   </entry>
   <entry>
@@ -612,6 +612,59 @@ and the repository exists.
       </tags>
   </entry>
   <entry>
+    <title>java元注解</title>
+    <url>/2016/12/06/java/java%E6%B3%A8%E8%A7%A3/</url>
+    <content><![CDATA[<p><img src="https://tracerzzz.ltd/2018031215208216305763.png" alt></p>
+<h3 id="元注解（修饰注解的注解）"><a href="#元注解（修饰注解的注解）" class="headerlink" title="元注解（修饰注解的注解）"></a>元注解（修饰注解的注解）</h3><table>
+<thead>
+<tr>
+<th>注解</th>
+<th>说明</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>@interface</td>
+<td>使用 @interface 关键字声明一个注解</td>
+<td></td>
+</tr>
+<tr>
+<td>@Inherited</td>
+<td>@Inherited：允许子类继承父类的注解。</td>
+<td></td>
+</tr>
+<tr>
+<td>@Retention</td>
+<td>这种类型的注解会被保留到哪个阶段</td>
+<td></td>
+</tr>
+<tr>
+<td>@Documented</td>
+<td>注解表明这个注解应该被 javadoc工具记录.</td>
+<td></td>
+</tr>
+<tr>
+<td>@Target</td>
+<td>注解的作用目标</td>
+</tr>
+</tbody>
+</table>
+<h3 id="元注解源码"><a href="#元注解源码" class="headerlink" title="元注解源码"></a>元注解源码</h3><h4 id="Target和ElementType枚举"><a href="#Target和ElementType枚举" class="headerlink" title="Target和ElementType枚举"></a>Target和ElementType枚举</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(ElementType.ANNOTATION_TYPE)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Target &#123;</span><br><span class="line">    ElementType[] value();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> ElementType &#123;</span><br><span class="line">    <span class="comment">/** Class, interface (including annotation type), or enum declaration */</span></span><br><span class="line">    TYPE,</span><br><span class="line">    <span class="comment">/** Field declaration (includes enum constants) */</span></span><br><span class="line">    FIELD,</span><br><span class="line">    <span class="comment">/** Method declaration */</span></span><br><span class="line">    METHOD,</span><br><span class="line">    <span class="comment">/** Parameter declaration */</span></span><br><span class="line">    PARAMETER,</span><br><span class="line">    <span class="comment">/** Constructor declaration */</span></span><br><span class="line">    CONSTRUCTOR,</span><br><span class="line">    <span class="comment">/** Local variable declaration */</span></span><br><span class="line">    LOCAL_VARIABLE,</span><br><span class="line">    <span class="comment">/** Annotation type declaration */</span></span><br><span class="line">    ANNOTATION_TYPE,</span><br><span class="line">    <span class="comment">/** Package declaration */</span></span><br><span class="line">    PACKAGE</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Retention注解源码和RetentionPolicy枚举"><a href="#Retention注解源码和RetentionPolicy枚举" class="headerlink" title="Retention注解源码和RetentionPolicy枚举"></a>Retention注解源码和RetentionPolicy枚举</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(ElementType.ANNOTATION_TYPE)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Retention &#123;</span><br><span class="line">    <span class="function">RetentionPolicy <span class="title">value</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> RetentionPolicy &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Annotations are to be discarded by the compiler.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    SOURCE,</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Annotations are to be recorded in the class file by the compiler</span></span><br><span class="line"><span class="comment">     * but need not be retained by the VM at run time.  This is the default</span></span><br><span class="line"><span class="comment">     * behavior.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    CLASS,</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Annotations are to be recorded in the class file by the compiler and</span></span><br><span class="line"><span class="comment">     * retained by the VM at run time, so they may be read reflectively.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@see</span> java.lang.reflect.AnnotatedElement</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    RUNTIME</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="创建一个注解"><a href="#创建一个注解" class="headerlink" title="创建一个注解"></a>创建一个注解</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/** </span></span><br><span class="line"><span class="comment"> * 下划线转换驼峰注解  </span></span><br><span class="line"><span class="comment"> * <span class="doctag">@version</span> 2.0 </span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Inherited</span>  </span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)  </span><br><span class="line"><span class="meta">@Target</span>(ElementType.METHOD)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> ConvertHump &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="CallerSensitive"><a href="#CallerSensitive" class="headerlink" title="@CallerSensitive"></a>@CallerSensitive</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(&#123; java.lang.annotation.ElementType.METHOD &#125;)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> CallerSensitive &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个注解是为了堵住漏洞用的。曾经有黑客通过构造双重反射来提升权限，原理是当时反射只检查固定深度的调用者的类，看它有没有特权，例如固定看两层的调用者（getCallerClass(2)）。如果我的类本来没足够权限群访问某些信息，那我就可以通过双重反射去达到目的：反射相关的类是有很高权限的，而在 我-&gt;反射1-&gt;反射2 这样的调用链上，反射2检查权限时看到的是反射1的类，这就被欺骗了，导致安全漏洞。使用CallerSensitive后，getCallerClass不再用固定深度去寻找actual caller（“我”），而是把所有跟反射相关的接口方法都标注上CallerSensitive，搜索时凡看到该注解都直接跳过，这样就有效解决了前面举例的问题</p>
+<p>​    </p>
+]]></content>
+      <categories>
+        <category>coding</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>数据结构java代码实现笔记文档</title>
     <url>/2016/12/06/java/Java%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%96%87%E6%A1%A3/</url>
     <content><![CDATA[<h3 id="单链表的反转"><a href="#单链表的反转" class="headerlink" title="单链表的反转"></a>单链表的反转</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//构建单链表节点</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ListNode</span> </span>&#123;</span><br><span class="line"><span class="comment">//元素，和下一个listnode</span></span><br><span class="line"><span class="keyword">public</span> Object element;</span><br><span class="line"><span class="keyword">public</span> ListNode next;</span><br><span class="line"><span class="comment">//构造方法1</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ListNode</span><span class="params">(Object element)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">this</span>(element, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//构造方法2</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ListNode</span><span class="params">(Object element,ListNode n)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">this</span>.element=element;</span><br><span class="line">   <span class="keyword">this</span>.next=n;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -728,59 +781,6 @@ and the repository exists.
       <tags>
         <tag>java</tag>
         <tag>数据结构</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>java元注解</title>
-    <url>/2016/12/06/java/java%E6%B3%A8%E8%A7%A3/</url>
-    <content><![CDATA[<p><img src="https://tracerzzz.ltd/2018031215208216305763.png" alt></p>
-<h3 id="元注解（修饰注解的注解）"><a href="#元注解（修饰注解的注解）" class="headerlink" title="元注解（修饰注解的注解）"></a>元注解（修饰注解的注解）</h3><table>
-<thead>
-<tr>
-<th>注解</th>
-<th>说明</th>
-<th>参数</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>@interface</td>
-<td>使用 @interface 关键字声明一个注解</td>
-<td></td>
-</tr>
-<tr>
-<td>@Inherited</td>
-<td>@Inherited：允许子类继承父类的注解。</td>
-<td></td>
-</tr>
-<tr>
-<td>@Retention</td>
-<td>这种类型的注解会被保留到哪个阶段</td>
-<td></td>
-</tr>
-<tr>
-<td>@Documented</td>
-<td>注解表明这个注解应该被 javadoc工具记录.</td>
-<td></td>
-</tr>
-<tr>
-<td>@Target</td>
-<td>注解的作用目标</td>
-</tr>
-</tbody>
-</table>
-<h3 id="元注解源码"><a href="#元注解源码" class="headerlink" title="元注解源码"></a>元注解源码</h3><h4 id="Target和ElementType枚举"><a href="#Target和ElementType枚举" class="headerlink" title="Target和ElementType枚举"></a>Target和ElementType枚举</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(ElementType.ANNOTATION_TYPE)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Target &#123;</span><br><span class="line">    ElementType[] value();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> ElementType &#123;</span><br><span class="line">    <span class="comment">/** Class, interface (including annotation type), or enum declaration */</span></span><br><span class="line">    TYPE,</span><br><span class="line">    <span class="comment">/** Field declaration (includes enum constants) */</span></span><br><span class="line">    FIELD,</span><br><span class="line">    <span class="comment">/** Method declaration */</span></span><br><span class="line">    METHOD,</span><br><span class="line">    <span class="comment">/** Parameter declaration */</span></span><br><span class="line">    PARAMETER,</span><br><span class="line">    <span class="comment">/** Constructor declaration */</span></span><br><span class="line">    CONSTRUCTOR,</span><br><span class="line">    <span class="comment">/** Local variable declaration */</span></span><br><span class="line">    LOCAL_VARIABLE,</span><br><span class="line">    <span class="comment">/** Annotation type declaration */</span></span><br><span class="line">    ANNOTATION_TYPE,</span><br><span class="line">    <span class="comment">/** Package declaration */</span></span><br><span class="line">    PACKAGE</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="Retention注解源码和RetentionPolicy枚举"><a href="#Retention注解源码和RetentionPolicy枚举" class="headerlink" title="Retention注解源码和RetentionPolicy枚举"></a>Retention注解源码和RetentionPolicy枚举</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(ElementType.ANNOTATION_TYPE)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Retention &#123;</span><br><span class="line">    <span class="function">RetentionPolicy <span class="title">value</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> RetentionPolicy &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Annotations are to be discarded by the compiler.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    SOURCE,</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Annotations are to be recorded in the class file by the compiler</span></span><br><span class="line"><span class="comment">     * but need not be retained by the VM at run time.  This is the default</span></span><br><span class="line"><span class="comment">     * behavior.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    CLASS,</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Annotations are to be recorded in the class file by the compiler and</span></span><br><span class="line"><span class="comment">     * retained by the VM at run time, so they may be read reflectively.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@see</span> java.lang.reflect.AnnotatedElement</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    RUNTIME</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="创建一个注解"><a href="#创建一个注解" class="headerlink" title="创建一个注解"></a>创建一个注解</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/** </span></span><br><span class="line"><span class="comment"> * 下划线转换驼峰注解  </span></span><br><span class="line"><span class="comment"> * <span class="doctag">@version</span> 2.0 </span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Inherited</span>  </span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)  </span><br><span class="line"><span class="meta">@Target</span>(ElementType.METHOD)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> ConvertHump &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="CallerSensitive"><a href="#CallerSensitive" class="headerlink" title="@CallerSensitive"></a>@CallerSensitive</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(&#123; java.lang.annotation.ElementType.METHOD &#125;)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> CallerSensitive &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这个注解是为了堵住漏洞用的。曾经有黑客通过构造双重反射来提升权限，原理是当时反射只检查固定深度的调用者的类，看它有没有特权，例如固定看两层的调用者（getCallerClass(2)）。如果我的类本来没足够权限群访问某些信息，那我就可以通过双重反射去达到目的：反射相关的类是有很高权限的，而在 我-&gt;反射1-&gt;反射2 这样的调用链上，反射2检查权限时看到的是反射1的类，这就被欺骗了，导致安全漏洞。使用CallerSensitive后，getCallerClass不再用固定深度去寻找actual caller（“我”），而是把所有跟反射相关的接口方法都标注上CallerSensitive，搜索时凡看到该注解都直接跳过，这样就有效解决了前面举例的问题</p>
-<p>​    </p>
-]]></content>
-      <categories>
-        <category>coding</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
       </tags>
   </entry>
   <entry>
