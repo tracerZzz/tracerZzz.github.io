@@ -6,10 +6,10 @@
 
 
 <html class="theme-next muse use-motion" lang="zh-Hans">
-<head><meta name="generator" content="Hexo 3.9.0">
-  <meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 <meta name="theme-color" content="#222">
 
 
@@ -20,8 +20,8 @@
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform">
-<meta http-equiv="Cache-Control" content="no-siteapp">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
 
 
 
@@ -40,7 +40,7 @@
 
   
   
-  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
 
 
 
@@ -48,9 +48,9 @@
 
 
 
-<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
 
-<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
 
 
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico?v=5.1.4">
@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="keepalived,zabbix,数据库,">
+  <meta name="keywords" content="数据库,keepalived,zabbix," />
 
 
 
@@ -80,7 +80,7 @@
 
 
 <meta name="description" content="本文记录了通过keepalived搭建zabbix双主模式（主主同步）高可用系统的详细步骤，其中会介绍zabbix的安装，mysql的双主互备，keepalived的配置，也会记录过程中遇到的问题以及对应的解决方法;">
-<meta name="keywords" content="keepalived,zabbix,数据库">
+<meta name="keywords" content="数据库,keepalived,zabbix">
 <meta property="og:type" content="article">
 <meta property="og:title" content="通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统">
 <meta property="og:url" content="http://yoursite.com/2018/03/23/架构/通过keepalived搭建mysql双主模式的高可用集群系统/index.html">
@@ -127,7 +127,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/03/23/架构/通过keepalived搭建mysql双主模式的高可用集群系统/">
+  <link rel="canonical" href="http://yoursite.com/2018/03/23/架构/通过keepalived搭建mysql双主模式的高可用集群系统/"/>
 
 
 
@@ -161,7 +161,7 @@
     
 
     <div class="custom-logo-site-title">
-      <a href="/" class="brand" rel="start">
+      <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
         <span class="site-title">À Çraftman</span>
         <span class="logo-line-after"><i></i></span>
@@ -191,7 +191,7 @@
         <li class="menu-item menu-item-home">
           <a href="/" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
            
              首页
@@ -203,7 +203,7 @@
         <li class="menu-item menu-item-tags">
           <a href="/tags/" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
             
            
             标签<span class="menuspan">15</span>
@@ -215,7 +215,7 @@
         <li class="menu-item menu-item-categories">
           <a href="/categories/" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
             
            
             分类<span class="menuspan">3</span>
@@ -227,7 +227,7 @@
         <li class="menu-item menu-item-archives">
           <a href="/archives/" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
            
             归档<span class="menuspan">14</span>
@@ -239,7 +239,7 @@
         <li class="menu-item menu-item-about">
           <a href="/about/" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
             
            
              关于
@@ -254,7 +254,7 @@
             <a href="javascript:;" class="popup-trigger">
           
             
-              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
             
             搜索
           </a>
@@ -275,7 +275,9 @@
       <i class="fa fa-times-circle"></i>
     </span>
     <div class="local-search-input-wrapper">
-      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
     </div>
   </div>
   <div id="local-search-result"></div>
@@ -316,7 +318,7 @@
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="tracerZzz">
-      <meta itemprop="description" content>
+      <meta itemprop="description" content="">
       <meta itemprop="image" content="https://tracerzzz.ltd/20180114151590788838213.jpg">
     </span>
 
@@ -364,7 +366,7 @@
           </span>
 
           
-            <span class="post-category">
+            <span class="post-category" >
             
               <span class="post-meta-divider">|</span>
             
@@ -550,11 +552,11 @@
       
         <div class="post-tags">
           
+            <a href="/tags/数据库/" rel="tag"># 数据库</a>
+          
             <a href="/tags/keepalived/" rel="tag"># keepalived</a>
           
             <a href="/tags/zabbix/" rel="tag"># zabbix</a>
-          
-            <a href="/tags/数据库/" rel="tag"># 数据库</a>
           
         </div>
       
@@ -654,7 +656,9 @@
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <img class="site-author-image" itemprop="image" src="https://tracerzzz.ltd/20180114151590788838213.jpg" alt="tracerZzz">
+              <img class="site-author-image" itemprop="image"
+                src="https://tracerzzz.ltd/20180114151590788838213.jpg"
+                alt="tracerZzz" />
             
               <p class="site-author-name" itemprop="name">tracerZzz</p>
               <p class="site-description motion-element" itemprop="description">想当木匠的程序员！</p>
@@ -738,7 +742,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mysql双主模式"><span class="nav-number">1.</span> <span class="nav-text">Mysql双主模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Keepalived"><span class="nav-number">2.</span> <span class="nav-text">Keepalived</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#准备工作"><span class="nav-number">3.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#机器准备（centos7系统）"><span class="nav-number">3.1.</span> <span class="nav-text">机器准备（centos7系统）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装mysql-并初始化密码"><span class="nav-number">3.2.</span> <span class="nav-text">安装mysql 并初始化密码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下载zabbix-proxy，导入表结构"><span class="nav-number">4.</span> <span class="nav-text">下载zabbix-proxy，导入表结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改-etc-my-cnf文件，配置同步"><span class="nav-number">5.</span> <span class="nav-text">修改/etc/my.cnf文件，配置同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#防火墙设置"><span class="nav-number">6.</span> <span class="nav-text">防火墙设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#验证数据库同步"><span class="nav-number">7.</span> <span class="nav-text">验证数据库同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下载安装keepalived"><span class="nav-number">8.</span> <span class="nav-text">下载安装keepalived</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#keepalived的配置文件说明"><span class="nav-number">8.1.</span> <span class="nav-text">keepalived的配置文件说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keepalived防火墙设置"><span class="nav-number">8.2.</span> <span class="nav-text">Keepalived防火墙设置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动zabbi-proxy"><span class="nav-number">9.</span> <span class="nav-text">启动zabbi-proxy</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#修改配置文件"><span class="nav-number">9.1.</span> <span class="nav-text">修改配置文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#开机自动启动"><span class="nav-number">9.2.</span> <span class="nav-text">开机自动启动</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试方法"><span class="nav-number">10.</span> <span class="nav-text">测试方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL出现同步延迟解决优化方法"><span class="nav-number">11.</span> <span class="nav-text">MySQL出现同步延迟解决优化方法</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mysql双主模式"><span class="nav-number">1.</span> <span class="nav-text"><a href="#Mysql&#x53CC;&#x4E3B;&#x6A21;&#x5F0F;" class="headerlink" title="Mysql&#x53CC;&#x4E3B;&#x6A21;&#x5F0F;"></a>Mysql&#x53CC;&#x4E3B;&#x6A21;&#x5F0F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Keepalived"><span class="nav-number">2.</span> <span class="nav-text"><a href="#Keepalived" class="headerlink" title="Keepalived"></a>Keepalived</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#准备工作"><span class="nav-number">3.</span> <span class="nav-text"><a href="#&#x51C6;&#x5907;&#x5DE5;&#x4F5C;" class="headerlink" title="&#x51C6;&#x5907;&#x5DE5;&#x4F5C;"></a>&#x51C6;&#x5907;&#x5DE5;&#x4F5C;</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#机器准备（centos7系统）"><span class="nav-number">3.1.</span> <span class="nav-text"><a href="#&#x673A;&#x5668;&#x51C6;&#x5907;&#xFF08;centos7&#x7CFB;&#x7EDF;&#xFF09;" class="headerlink" title="&#x673A;&#x5668;&#x51C6;&#x5907;&#xFF08;centos7&#x7CFB;&#x7EDF;&#xFF09;"></a>&#x673A;&#x5668;&#x51C6;&#x5907;&#xFF08;centos7&#x7CFB;&#x7EDF;&#xFF09;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装mysql-并初始化密码"><span class="nav-number">3.2.</span> <span class="nav-text"><a href="#&#x5B89;&#x88C5;mysql-&#x5E76;&#x521D;&#x59CB;&#x5316;&#x5BC6;&#x7801;" class="headerlink" title="&#x5B89;&#x88C5;mysql &#x5E76;&#x521D;&#x59CB;&#x5316;&#x5BC6;&#x7801;"></a>&#x5B89;&#x88C5;mysql &#x5E76;&#x521D;&#x59CB;&#x5316;&#x5BC6;&#x7801;</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下载zabbix-proxy，导入表结构"><span class="nav-number">4.</span> <span class="nav-text"><a href="#&#x4E0B;&#x8F7D;zabbix-proxy&#xFF0C;&#x5BFC;&#x5165;&#x8868;&#x7ED3;&#x6784;" class="headerlink" title="&#x4E0B;&#x8F7D;zabbix-proxy&#xFF0C;&#x5BFC;&#x5165;&#x8868;&#x7ED3;&#x6784;"></a>&#x4E0B;&#x8F7D;zabbix-proxy&#xFF0C;&#x5BFC;&#x5165;&#x8868;&#x7ED3;&#x6784;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改-etc-my-cnf文件，配置同步"><span class="nav-number">5.</span> <span class="nav-text"><a href="#&#x4FEE;&#x6539;-etc-my-cnf&#x6587;&#x4EF6;&#xFF0C;&#x914D;&#x7F6E;&#x540C;&#x6B65;" class="headerlink" title="&#x4FEE;&#x6539;/etc/my.cnf&#x6587;&#x4EF6;&#xFF0C;&#x914D;&#x7F6E;&#x540C;&#x6B65;"></a>&#x4FEE;&#x6539;/etc/my.cnf&#x6587;&#x4EF6;&#xFF0C;&#x914D;&#x7F6E;&#x540C;&#x6B65;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#防火墙设置"><span class="nav-number">6.</span> <span class="nav-text"><a href="#&#x9632;&#x706B;&#x5899;&#x8BBE;&#x7F6E;" class="headerlink" title="&#x9632;&#x706B;&#x5899;&#x8BBE;&#x7F6E;"></a>&#x9632;&#x706B;&#x5899;&#x8BBE;&#x7F6E;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#验证数据库同步"><span class="nav-number">7.</span> <span class="nav-text"><a href="#&#x9A8C;&#x8BC1;&#x6570;&#x636E;&#x5E93;&#x540C;&#x6B65;" class="headerlink" title="&#x9A8C;&#x8BC1;&#x6570;&#x636E;&#x5E93;&#x540C;&#x6B65;"></a>&#x9A8C;&#x8BC1;&#x6570;&#x636E;&#x5E93;&#x540C;&#x6B65;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下载安装keepalived"><span class="nav-number">8.</span> <span class="nav-text"><a href="#&#x4E0B;&#x8F7D;&#x5B89;&#x88C5;keepalived" class="headerlink" title="&#x4E0B;&#x8F7D;&#x5B89;&#x88C5;keepalived"></a>&#x4E0B;&#x8F7D;&#x5B89;&#x88C5;keepalived</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#keepalived的配置文件说明"><span class="nav-number">8.1.</span> <span class="nav-text"><a href="#keepalived&#x7684;&#x914D;&#x7F6E;&#x6587;&#x4EF6;&#x8BF4;&#x660E;" class="headerlink" title="keepalived&#x7684;&#x914D;&#x7F6E;&#x6587;&#x4EF6;&#x8BF4;&#x660E;"></a>keepalived&#x7684;&#x914D;&#x7F6E;&#x6587;&#x4EF6;&#x8BF4;&#x660E;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keepalived防火墙设置"><span class="nav-number">8.2.</span> <span class="nav-text"><a href="#Keepalived&#x9632;&#x706B;&#x5899;&#x8BBE;&#x7F6E;" class="headerlink" title="Keepalived&#x9632;&#x706B;&#x5899;&#x8BBE;&#x7F6E;"></a>Keepalived&#x9632;&#x706B;&#x5899;&#x8BBE;&#x7F6E;</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动zabbi-proxy"><span class="nav-number">9.</span> <span class="nav-text"><a href="#&#x542F;&#x52A8;zabbi-proxy" class="headerlink" title="&#x542F;&#x52A8;zabbi-proxy"></a>&#x542F;&#x52A8;zabbi-proxy</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#修改配置文件"><span class="nav-number">9.1.</span> <span class="nav-text"><a href="#&#x4FEE;&#x6539;&#x914D;&#x7F6E;&#x6587;&#x4EF6;" class="headerlink" title="&#x4FEE;&#x6539;&#x914D;&#x7F6E;&#x6587;&#x4EF6;"></a>&#x4FEE;&#x6539;&#x914D;&#x7F6E;&#x6587;&#x4EF6;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#开机自动启动"><span class="nav-number">9.2.</span> <span class="nav-text"><a href="#&#x5F00;&#x673A;&#x81EA;&#x52A8;&#x542F;&#x52A8;" class="headerlink" title="&#x5F00;&#x673A;&#x81EA;&#x52A8;&#x542F;&#x52A8;"></a>&#x5F00;&#x673A;&#x81EA;&#x52A8;&#x542F;&#x52A8;</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试方法"><span class="nav-number">10.</span> <span class="nav-text"><a href="#&#x6D4B;&#x8BD5;&#x65B9;&#x6CD5;" class="headerlink" title="&#x6D4B;&#x8BD5;&#x65B9;&#x6CD5;"></a>&#x6D4B;&#x8BD5;&#x65B9;&#x6CD5;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL出现同步延迟解决优化方法"><span class="nav-number">11.</span> <span class="nav-text"><a href="#MySQL&#x51FA;&#x73B0;&#x540C;&#x6B65;&#x5EF6;&#x8FDF;&#x89E3;&#x51B3;&#x4F18;&#x5316;&#x65B9;&#x6CD5;" class="headerlink" title="MySQL&#x51FA;&#x73B0;&#x540C;&#x6B65;&#x5EF6;&#x8FDF;&#x89E3;&#x51B3;&#x4F18;&#x5316;&#x65B9;&#x6CD5;"></a><strong>MySQL&#x51FA;&#x73B0;&#x540C;&#x6B65;&#x5EF6;&#x8FDF;&#x89E3;&#x51B3;&#x4F18;&#x5316;&#x65B9;&#x6CD5;</strong></span></a></li></ol></div>
             
 
           </div>
