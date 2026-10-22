@@ -1,6 +1,6 @@
 name: Build
 
-# 每次推送都会构建和检查；推送到 master 时再发布到 GitHub Pages
+# 每次推送都会构建并检查网站（正式发布由阿里云 ESA Pages 负责）
 on:
   push:
   workflow_dispatch:
@@ -21,23 +21,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: bash scripts/verify-build.sh
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: dist
           path: dist
-
-  deploy:
-    if: github.ref == 'refs/heads/master'
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    concurrency:
-      group: pages
-      cancel-in-progress: false
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          retention-days: 7
