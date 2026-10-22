@@ -15,8 +15,9 @@ pnpm build     # 构建静态网站，输出到 dist/
 ## 写文章
 
 - 文章放在 `src/content/posts/`，可以按分类建子文件夹。
-- 文件名用英文小写加连字符，比如 `git-commands.md`，它同时是文章的网址：`/posts/git-commands/`。
-- 图片放在文章旁边的同名文件夹 `git-commands.assets/` 里，用相对路径引用：`![](./git-commands.assets/xxx.png)`。
+- 文件名用文章标题，比如 `git/git常用命令.md`；文件夹按主题分，用英文。文件名里不要有空格和 `+`。
+- 文章网址由开头的 `abbrlink` 决定（如 `abbrlink: git-commands` → `/posts/git-commands/`），和文件名、文件夹无关，移动或改名都不影响网址。
+- 图片放在文章旁边的同名文件夹 `git常用命令.assets/` 里，用相对路径引用：`![](./git常用命令.assets/xxx.png)`。
 
 Typora 设置（偏好设置 → 图像）：
 

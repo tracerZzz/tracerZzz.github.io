@@ -16,7 +16,7 @@ abbrlink: webpack-quick-start
 
 ***webpack* 是一个现代 JavaScript 应用程序的*静态模块打包器(module bundler)*。当 webpack 处理应用程序时，它会递归地构建一个*依赖关系图(dependency graph)*，其中包含应用程序需要的每个模块，然后将所有这些模块打包成一个或多个 *bundle*。**
 
-![](./webpack-quick-start.assets/20180308152048985612690.png)
+![](./webpack快速入门.assets/20180308152048985612690.png)
 
 说白了，webpack就是一个项目打包工具，他可以将不同的文件通通打入一个或者多个文件。在这个工程中，webpack可以依赖各种loader对不同类型的的文件，进行进一步的操作。比如webpack依赖babel loader对js文件进行es6 es7转码，让你在使用es6 es7新语法的同时还可以将代码运行在比较古老的浏览器中。他还可以利用不同的plugin进行更多操作，比如利用**webpack.optimize.UglifyJsPlugin**去除代码中的空格，将文件最小化。等等，webpack可以干的事情非常的多，他在前端项目工程化中已经在扮演着一个大管家的作用。
 
@@ -115,7 +115,7 @@ import Chart from '@/components/Charts/keyboard'
 
 项目目录结构如下
 
-![20180309152056457218097.png](./webpack-quick-start.assets/20180309152056457218097.png)
+![20180309152056457218097.png](./webpack快速入门.assets/20180309152056457218097.png)
 
 项目中webpack配置包含在build目录下，共三个，分别为base，dev，product，代表了基本配置，开发环境配置，生产环境配置。dev和product两个文件都使用了merge方法来将base中基础配置和自己的配置进行合并，这里依赖`webpack-merge`
 

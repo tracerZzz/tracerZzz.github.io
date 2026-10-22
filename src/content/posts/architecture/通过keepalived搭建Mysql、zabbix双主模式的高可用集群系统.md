@@ -16,7 +16,7 @@ mysql双主模式也叫做主主同步或者双主互备，即两台数据库ser
 
 
 
-![20180316152118561067778.png](./keepalived-mysql-dual-master.assets/20180316152118561067778.png)
+![20180316152118561067778.png](./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180316152118561067778.png)
 
 ------
 
@@ -140,7 +140,7 @@ grant replication slave on *.* to 'repl_user'@'183.57.148.7' identified by 'MyNe
 show master status;
 ```
 
-![20180319152143914570938.png](./keepalived-mysql-dual-master.assets/20180319152143914570938.png)
+![20180319152143914570938.png](./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180319152143914570938.png)
 
 在slaver机器上指定数据库master为183.57.148.5，并指定日志文件名字和位置，这样slaver就知道从哪里开始进行同步了。
 
@@ -160,7 +160,7 @@ start slave
 grant replication slave on *.* to 'repl_user'@'183.57.148.4' identified by 'MyNewPass111!';
 ```
 
-![20180319152143914570938.png](./keepalived-mysql-dual-master.assets/20180319152143914570938.png)
+![20180319152143914570938.png](./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180319152143914570938.png)
 
 在master机器上指定数据库master为183.57.148.7,并指定日志文件名字和位置
 
@@ -192,7 +192,7 @@ sudo firewall-cmd --reload
 show slave status\G;
 ```
 
-![20180322152171000488344.png](./keepalived-mysql-dual-master.assets/20180322152171000488344.png)
+![20180322152171000488344.png](./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180322152171000488344.png)
 
 必须确保两个参数 Slave_IO_Running，Slave_SQL_Running为Yes
 
@@ -210,11 +210,11 @@ select * from test;
 
 在master机器上执行上面的操作,返回结构，
 
-![20180322152171091923913.png](./keepalived-mysql-dual-master.assets/20180322152171091923913.png)
+![20180322152171091923913.png](./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180322152171091923913.png)
 
 在slave上也执行查询语句`select * from test;`,返回同样的结果。再在master上执行`insert test values();`返回结果如下
 
-![20180322152171094816591.png](./keepalived-mysql-dual-master.assets/20180322152171094816591.png)
+![20180322152171094816591.png](./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180322152171094816591.png)
 
 可以看到master上的所有自增主键都是奇数，接着在slave机器上执行`insert test values();`语句，结果为123，slave为偶数，从2开始，说明我们的自增配置已经生效，并且也进行了数据同步；
 

@@ -8,7 +8,7 @@ draft: false
 abbrlink: git-commands
 ---
 
-![20180514152628079993927.png](./git-commands.assets/20180514152628079993927.png)
+![20180514152628079993927.png](./git常用命令.assets/20180514152628079993927.png)
 
 #### 放弃修改
 

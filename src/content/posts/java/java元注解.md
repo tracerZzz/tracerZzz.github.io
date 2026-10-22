@@ -8,7 +8,7 @@ draft: false
 abbrlink: java-meta-annotations
 ---
 
-![](./java-meta-annotations.assets/2018031215208216305763.png)
+![](./java元注解.assets/2018031215208216305763.png)
 ### 元注解（修饰注解的注解）
 
 |注解|说明|参数|

@@ -28,7 +28,7 @@ zbstudio
 sudo  yum install -y gtk2-devel-2.24.31-1.el7.i686 gtk2 libgtk-x11-2.0.so.0 libSM-1.2.2-2.el7.x86_64 mesa-libGL xdg-utils install dejavu-lgc-sans-fonts.
 ```
 
-![20180617152921377554345.png](./lua-zerobrane-studio.assets/20180617152921377554345.png)
+![20180617152921377554345.png](./lua调试工具ZeroBraneStudio.assets/20180617152921377554345.png)
 
 到这一步，说明已经安装好了，需要配置图像界面
 

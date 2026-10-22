@@ -9,7 +9,7 @@ draft: false
 abbrlink: scrapy-netease-music-playlist
 ---
 
-![2018051515263513332302.png](./scrapy-netease-music-playlist.assets/2018051515263513332302.png)
+![2018051515263513332302.png](./使用scrapy和scrapy-splash爬取网易云音乐歌单.assets/2018051515263513332302.png)
 
 ### 创建项目
 
@@ -21,7 +21,7 @@ scrapy genspider Music163 163.com
 
 文件目录如下：
 
-![20180515152636349896977.png](./scrapy-netease-music-playlist.assets/20180515152636349896977.png)
+![20180515152636349896977.png](./使用scrapy和scrapy-splash爬取网易云音乐歌单.assets/20180515152636349896977.png)
 
 ### Items.py
 
@@ -97,11 +97,11 @@ if __name__ == '__main__':
 
 上边这段代码是爬取歌单的关键。这里首先说下爬取的思路，打开网易云的网站，找到歌单连接,歌单分为热门和最新两种，每种又根据风格分为72小类，思路就是先爬取所有种类的连接
 
-![20180515152636458293531.png](./scrapy-netease-music-playlist.assets/20180515152636458293531.png)
+![20180515152636458293531.png](./使用scrapy和scrapy-splash爬取网易云音乐歌单.assets/20180515152636458293531.png)
 
 再打开每类歌单的网页
 
-![20180515152636639480608.png](./scrapy-netease-music-playlist.assets/20180515152636639480608.png)
+![20180515152636639480608.png](./使用scrapy和scrapy-splash爬取网易云音乐歌单.assets/20180515152636639480608.png)
 
 从上面的图片中，我们可以看到每首歌的标题,连接，收听次数等信息。
 
@@ -167,7 +167,7 @@ MONGODB_SEPARATE_COLLECTIONS = True
 
 ### 爬取结果
 
-![20180515152636644617456.png](./scrapy-netease-music-playlist.assets/20180515152636644617456.png)
+![20180515152636644617456.png](./使用scrapy和scrapy-splash爬取网易云音乐歌单.assets/20180515152636644617456.png)
 
 共爬取了15万左右的歌单。下面是播放次数最多的五个歌单
 
