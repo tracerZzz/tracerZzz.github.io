@@ -1,0 +1,263 @@
+---
+// 欢迎页：独立的单页面，不使用博客主题的布局。
+// 动画脚本在 src/scripts/welcome/，大幅插画在 src/components/welcome/。
+import Flower from '@/components/welcome/Flower.astro'
+import GitIcon from '@/components/welcome/GitIcon.astro'
+import Mandala from '@/components/welcome/Mandala.astro'
+import MusicIcon from '@/components/welcome/MusicIcon.astro'
+import NoteIcon from '@/components/welcome/NoteIcon.astro'
+import ProfileIcon from '@/components/welcome/ProfileIcon.astro'
+import { base, themeConfig } from '@/config'
+
+const { title, description } = themeConfig.site
+const links = {
+  blog: `${base}/`,
+  about: `${base}/about/`,
+  github: 'https://github.com/tracerZzz',
+  music: 'https://music.163.com/#/user/home?id=91916193',
+}
+---
+
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>欢迎 | {title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href={`${base}/favicon.ico`} />
+  </head>
+  <body>
+    <div id="main">
+      <div id="background"></div>
+      <section id="welcome">
+        <svg id="welcomesvg" viewBox="-350 -250 700 500" preserveAspectRatio="xMaxYMid">
+          <Flower />
+          <text class="describeleft" x="110" y="-120" opacity="0">≡ 一砖一瓦，一凿一砌</text>
+          <text class="describeleft" x="110" y="-20" opacity="0">≡ 命理念思想隐其内。</text>
+          <text class="describeleft" x="110" y="80" opacity="0">≡ 而不足与外人道。</text>
+        </svg>
+        <svg id="welcomesvg2" viewBox="-350 -250 700 500" preserveAspectRatio="xMinYMid">
+          <text class="describeright" x="-350" y="-120" opacity="0">≡ 令尽身精血聚其中，</text>
+          <text class="describeright" x="-350" y="-20" opacity="0">≡ 其中艰辛历历在身，</text>
+          <text class="describeright" x="-310" y="130" opacity="0">——工匠精神</text>
+          <Mandala />
+        </svg>
+        <input id="slider" type="range" min="0" max="100" step="0.1" value="0" aria-label="动画进度" />
+      </section>
+
+      <section id="container">
+        <div id="menubg">
+          {Array.from({ length: 110 }, () => <div class="bgcircle" />)}
+        </div>
+        <div id="menu">
+          <svg id="menusvg" viewBox="-350 -250 700 500">
+            <text class="testlist" x="-200" y="190" lengthAdjust="spacingAndGlyphs">enthusiasm • concentration•patience</text>
+            <text class="testlist" x="-71" y="220" lengthAdjust="spacingAndGlyphs">热情 • 专注 • 耐心</text>
+
+            <!-- 菜单打开后，四个子菜单从按钮四周飞出（位置见 src/scripts/welcome/index.ts） -->
+            <a href={links.blog} aria-label="博客">
+              <g id="lefttop" class="gmenulist" style="opacity:0">
+                <rect class="menulist" x="150" y="50" width="100" height="100" stroke="gray" stroke-width="2" rx="15" ry="15" />
+                <NoteIcon />
+              </g>
+            </a>
+            <a href={links.github} aria-label="GitHub">
+              <g id="leftbottom" class="gmenulist" style="opacity:0">
+                <rect class="menulist" x="150" y="-150" width="100" height="100" stroke="gray" stroke-width="2" rx="15" ry="15" />
+                <GitIcon />
+              </g>
+            </a>
+            <a href={links.about} aria-label="关于">
+              <g id="righttop" class="gmenulist" style="opacity:0">
+                <rect class="menulist" x="-250" y="50" width="100" height="100" stroke="gray" stroke-width="2" rx="15" ry="15" />
+                <ProfileIcon />
+              </g>
+            </a>
+            <a href={links.music} aria-label="网易云音乐">
+              <g id="rightbottom" class="gmenulist" style="opacity:0">
+                <rect class="menulist" x="-250" y="-150" width="100" height="100" stroke="gray" stroke-width="2" rx="15" ry="15" />
+                <MusicIcon />
+              </g>
+            </a>
+
+            <!-- 中心菜单按钮 -->
+            <g id="menubutton" role="button" tabindex="0" aria-label="菜单" aria-expanded="false">
+              <rect id="menurect" x="-50" y="-50" rx="15" width="100" height="100" fill="black" stroke="#CB2727" stroke-width="3" />
+              <line id="menutop" class="menuline" x1="-20" y1="-15" x2="20" y2="-15" stroke="lightgray" stroke-width="5" />
+              <line id="menumid" class="menuline" x1="-20" y1="0" x2="20" y2="0" stroke="lightgray" stroke-width="5" />
+              <line id="menubottom" class="menuline" x1="-20" y1="15" x2="20" y2="15" stroke="lightgray" stroke-width="5" />
+            </g>
+          </svg>
+        </div>
+      </section>
+    </div>
+    <noscript><a id="noscript" href={links.blog}>进入博客 →</a></noscript>
+
+    <script>
+      import '@/scripts/welcome/index.ts'
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Times New Roman', 'Songti SC', 'SimSun', serif;
+  }
+
+  #main {
+    position: absolute;
+    inset: 0;
+  }
+
+  #background {
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+    height: 62%;
+    background-color: lightgray;
+  }
+
+  #welcome {
+    position: relative;
+    height: 62%;
+    white-space: nowrap;
+  }
+
+  #welcome > svg {
+    display: inline-block;
+    vertical-align: top;
+    width: 49.2%;
+    height: 100%;
+  }
+
+  #welcome text {
+    font-size: 22px;
+  }
+
+  #container {
+    height: 38%;
+    min-height: 150px;
+  }
+
+  /* 下方的彩色圆点 */
+  #menubg {
+    position: fixed;
+    top: 62%;
+    z-index: -2;
+    width: 100%;
+    height: 38%;
+    padding: 10px;
+    overflow: hidden;
+    background-color: black;
+  }
+
+  .bgcircle {
+    float: left;
+    width: 60px;
+    height: 60px;
+    margin: 30px 15px 0;
+    border-radius: 50%;
+    background-color: black;
+    opacity: 0.22;
+    /* 原来的 Power2.easeOut */
+    transition:
+      transform 5s cubic-bezier(0.215, 0.61, 0.355, 1),
+      background-color 5s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  #menu {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  #menusvg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .testlist {
+    fill: white;
+    font-size: 18px;
+    text-transform: uppercase;
+  }
+
+  #menubutton,
+  .gmenulist {
+    cursor: pointer;
+    outline: none;
+  }
+
+  #menubutton:focus-visible #menurect {
+    stroke: white;
+  }
+
+  /* 菜单收起时，隐藏的子菜单不响应点击 */
+  #menusvg:not(.open) .gmenulist {
+    pointer-events: none;
+  }
+
+  #musicsvg path {
+    stroke: #fff;
+    stroke-width: 2;
+  }
+
+  /* 进度条（原来是 jQuery UI 的 slider） */
+  #slider {
+    position: absolute;
+    bottom: 5px;
+    left: 25%;
+    width: 50%;
+    height: 14px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  #slider::-webkit-slider-runnable-track {
+    height: 9px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    background: #fff;
+  }
+
+  #slider::-moz-range-track {
+    height: 9px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    background: #fff;
+  }
+
+  #slider::-webkit-slider-thumb {
+    width: 14px;
+    height: 14px;
+    margin-top: -3.5px;
+    border: 1px solid #d3d3d3;
+    border-radius: 4px;
+    background: #e6e6e6;
+    appearance: none;
+  }
+
+  #slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 1px solid #d3d3d3;
+    border-radius: 4px;
+    background: #e6e6e6;
+  }
+
+  #noscript {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    color: black;
+  }
+</style>

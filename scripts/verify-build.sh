@@ -30,5 +30,16 @@ for r in $(find public -mindepth 4 -name index.html -path 'public/20*'); do
   [ -f "dist${target}index.html" ] || err "redirect target missing: $target (from $r)"
 done
 
+# welcome page: markup, menu links and bundled script
+w=dist/welcome/index.html
+if [ -f "$w" ]; then
+  for needle in 'id="?gflower' 'id="?menusvg' 'github\.com/tracerZzz' 'href="?/about/' '<script type="?module'; do
+    grep -Eq "$needle" "$w" || err "welcome page lacks $needle"
+  done
+  echo "ok  welcome"
+else
+  err "missing $w"
+fi
+
 [ $fail -eq 0 ] && echo "all checks passed"
 exit $fail

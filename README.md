@@ -37,6 +37,17 @@ abbrlink: git-commands   # 网址，只能用小写字母、数字和连字符
 ---
 ```
 
+## 欢迎页
+
+`/welcome/` 是原来博客的 SVG 动画欢迎页，独立于博客主题：
+
+- 页面和菜单链接：`src/pages/welcome.astro`
+- 动画时间线、菜单效果：`src/scripts/welcome/index.ts`（时间单位是秒）
+- 补间动画小工具：`src/scripts/welcome/tween.ts`（不依赖第三方库）
+- 大幅插画：`src/components/welcome/`
+
+改完源码直接 `pnpm dev` 预览，`pnpm build` 时 Astro 会自动打包压缩，不需要手动处理。
+
 ## 迁移说明
 
 - `scripts/migrate-hexo.py`：一次性的迁移脚本，把 Hexo 文章转换成现在的格式、把七牛上的图片放到每篇文章旁边，并为旧网址生成跳转页面。
