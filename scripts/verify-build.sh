@@ -33,9 +33,10 @@ done
 # welcome page: markup, menu links and bundled script
 w=dist/welcome/index.html
 if [ -f "$w" ]; then
-  for needle in 'id="?gflower' 'id="?menusvg' 'github\.com/tracerZzz' 'href="?/about/' '<script type="?module'; do
+  for needle in 'id="?gflower' 'id="?menusvg' 'github\.com/tracerZzz' 'href="?/about/' '<script[^>]*module'; do
     grep -Eq "$needle" "$w" || err "welcome page lacks $needle"
   done
+  echo "::notice::welcome scripts: $(grep -Eo '<script[^>]*>' "$w" | tr '\n' ' ')"
   echo "ok  welcome"
 else
   err "missing $w"
