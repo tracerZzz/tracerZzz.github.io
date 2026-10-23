@@ -117,12 +117,14 @@ export default defineConfig({
 	},
 
 	integrations: [
-		// 整页跳转（进出欢迎页、刷新）后接着播放音乐，见 src/scripts/music-resume.ts
+		// 自己加的脚本：刷新页面后接着播放音乐（music-resume.ts）；欢迎页的挂载 / 卸载（welcome/controller.ts）
 		{
-			name: "music-resume",
+			name: "local-scripts",
 			hooks: {
 				"astro:config:setup": ({ injectScript }) => {
 					injectScript("page", 'import "/src/scripts/music-resume.ts";');
+					// 欢迎页的挂载 / 卸载，见 src/scripts/welcome/controller.ts
+					injectScript("page", 'import "/src/scripts/welcome/controller.ts";');
 				},
 			},
 		},
@@ -151,10 +153,6 @@ export default defineConfig({
 			globalInstance: true,
 			// 滚动相关配置优化
 			resolveUrl: (url) => url,
-			// 欢迎页是独立页面，没有 swup 的容器：进出欢迎页都走普通的整页跳转，避免切换时的残影
-			ignore: (url) =>
-				new URL(url, window.location.href).pathname.startsWith("/welcome") ||
-				window.location.pathname.startsWith("/welcome"),
 			animateHistoryBrowsing: false,
 			skipPopStateHandling: (event) => {
 				// 跳过锚点链接的处理，让浏览器原生处理

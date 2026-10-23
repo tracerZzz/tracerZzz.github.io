@@ -320,11 +320,13 @@ export class Timeline {
     this.onUpdate?.(this.time)
   }
 
+  private startTimer = 0
+
   /** 循环播放；delay 秒后开始 */
   play(delay = 0) {
     this.seek(this.time)
     this.playing = true
-    setTimeout(() => {
+    this.startTimer = window.setTimeout(() => {
       this.last = performance.now()
       const tick = (now: number) => {
         if (!this.playing)
@@ -337,6 +339,12 @@ export class Timeline {
       }
       requestAnimationFrame(tick)
     }, delay * 1000)
+  }
+
+  /** 停止播放（离开欢迎页时调用） */
+  stop() {
+    this.playing = false
+    clearTimeout(this.startTimer)
   }
 }
 

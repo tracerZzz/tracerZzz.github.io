@@ -1,38 +1,28 @@
 ---
-// 欢迎页：独立的单页面，不使用博客主题的布局。
-// 动画脚本在 src/scripts/welcome/，大幅插画在 src/components/welcome/。
+// 欢迎页：套在博客的页面框架里，但用一个全屏图层盖住整个页面，看起来是独立的单页面。
+// 这样进出欢迎页由 swup 切换、不整页刷新，音乐播放器不中断。
+// 动画脚本在 src/scripts/welcome/（由 controller.ts 负责挂载 / 卸载），大幅插画在 src/components/welcome/。
 import Flower from '@/components/welcome/Flower.astro'
 import GitIcon from '@/components/welcome/GitIcon.astro'
 import Mandala from '@/components/welcome/Mandala.astro'
 import MusicIcon from '@/components/welcome/MusicIcon.astro'
 import NoteIcon from '@/components/welcome/NoteIcon.astro'
 import ProfileIcon from '@/components/welcome/ProfileIcon.astro'
-import MusicManager from '@/components/features/MusicManager.astro'
-import { siteConfig } from '@/config'
-
-const { title, description } = siteConfig
+import MainGridLayout from '@/layouts/MainGridLayout.astro'
 const links = {
   blog: '/',
   about: '/about/',
   github: 'https://github.com/tracerZzz',
-  // 网易云公开歌单：点击时在页面内弹出外链播放器，不用登录；没有 JS 时直接打开歌单页
+  // 网易云公开歌单：没有 JS 时，点音乐图标直接打开歌单页
   music: 'https://music.163.com/#/playlist?id=2059184801',
 }
 ---
 
-<!doctype html>
-<html lang="zh">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>欢迎 | {title}</title>
-    <meta name="description" content={description} />
-    <link rel="icon" href="/favicon.ico" />
-  </head>
-  <body>
-    <div id="main">
-      <div id="background"></div>
-      <section id="welcome">
+<MainGridLayout title="欢迎" description="À Çraftman 的欢迎页">
+  <div id="welcome-root">
+    <div id="wl-main">
+      <div id="wl-bg"></div>
+      <section id="wl-top">
         <svg id="welcomesvg" viewBox="-350 -250 700 500" preserveAspectRatio="xMaxYMid">
           <Flower />
           <text class="describeleft" x="110" y="-120" opacity="0">≡ 一砖一瓦，一凿一砌</text>
@@ -45,14 +35,14 @@ const links = {
           <text class="describeright" x="-310" y="130" opacity="0">——工匠精神</text>
           <Mandala />
         </svg>
-        <input id="slider" type="range" min="0" max="100" step="0.1" value="0" aria-label="动画进度" />
+        <input id="wl-slider" type="range" min="0" max="100" step="0.1" value="0" aria-label="动画进度" />
       </section>
 
-      <section id="container">
+      <section id="wl-bottom">
         <div id="menubg">
           {Array.from({ length: 110 }, () => <div class="bgcircle" />)}
         </div>
-        <div id="menu">
+        <div id="wl-menu">
           <svg id="menusvg" viewBox="-350 -250 700 500">
             <text class="testlist" x="-200" y="190" lengthAdjust="spacingAndGlyphs">enthusiasm • concentration•patience</text>
             <text class="testlist" x="-71" y="220" lengthAdjust="spacingAndGlyphs">热情 • 专注 • 耐心</text>
@@ -94,9 +84,8 @@ const links = {
         </div>
       </section>
     </div>
-    <!-- 音乐迷你播放器：用博客同一个播放器（主题的 MusicManager），进出博客时接着播放。
+    <!-- 音乐迷你播放器：用博客页面框架里的播放器（主题的 MusicManager），进出欢迎页时音乐不中断。
          鼠标移到音乐图标上时出现，移开后隐藏，音乐不停 -->
-    <MusicManager />
     <div id="musicpop" aria-label="音乐播放器">
       <div class="mp-head">
         <img id="mp-cover" alt="" />
@@ -118,30 +107,43 @@ const links = {
       <ol id="mp-list"></ol>
       <a class="music-open" href={links.music} target="_blank" rel="noopener">在网易云音乐中打开歌单 ↗</a>
     </div>
-    <noscript><a id="noscript" href={links.blog}>进入博客 →</a></noscript>
-
-    <script>
-      import '@/scripts/welcome/index.ts'
-    </script>
-  </body>
-</html>
+    <noscript><a id="wl-noscript" href={links.blog}>进入博客 →</a></noscript>
+  </div>
+</MainGridLayout>
 
 <style is:global>
-  html,
-  body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+  /* 全屏图层，盖住下面的博客页面。样式都限定在 #welcome-root 里，不影响博客 */
+  html:has(#welcome-root) {
     overflow: hidden;
-    font-family: 'Times New Roman', 'Songti SC', 'SimSun', serif;
   }
 
-  #main {
+  #welcome-root {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    overflow: hidden;
+    background: black;
+    font-family: 'Times New Roman', 'Songti SC', 'SimSun', serif;
+    animation: wl-fade-in 0.3s ease;
+  }
+
+  #welcome-root.leaving {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  @keyframes wl-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  #wl-main {
     position: absolute;
     inset: 0;
   }
 
-  #background {
+  #wl-bg {
     position: absolute;
     z-index: -1;
     width: 100%;
@@ -149,24 +151,24 @@ const links = {
     background-color: lightgray;
   }
 
-  #welcome {
+  #wl-top {
     position: relative;
     height: 62%;
     white-space: nowrap;
   }
 
-  #welcome > svg {
+  #wl-top > svg {
     display: inline-block;
     vertical-align: top;
     width: 49.2%;
     height: 100%;
   }
 
-  #welcome text {
+  #wl-top text {
     font-size: 22px;
   }
 
-  #container {
+  #wl-bottom {
     height: 38%;
     min-height: 150px;
   }
@@ -197,7 +199,7 @@ const links = {
       background-color 5s cubic-bezier(0.215, 0.61, 0.355, 1);
   }
 
-  #menu {
+  #wl-menu {
     position: relative;
     width: 100%;
     height: 100%;
@@ -236,7 +238,7 @@ const links = {
   }
 
   /* 进度条（原来是 jQuery UI 的 slider） */
-  #slider {
+  #wl-slider {
     position: absolute;
     bottom: 5px;
     left: 25%;
@@ -248,21 +250,21 @@ const links = {
     appearance: none;
   }
 
-  #slider::-webkit-slider-runnable-track {
+  #wl-slider::-webkit-slider-runnable-track {
     height: 9px;
     border: 1px solid #aaa;
     border-radius: 4px;
     background: #fff;
   }
 
-  #slider::-moz-range-track {
+  #wl-slider::-moz-range-track {
     height: 9px;
     border: 1px solid #aaa;
     border-radius: 4px;
     background: #fff;
   }
 
-  #slider::-webkit-slider-thumb {
+  #wl-slider::-webkit-slider-thumb {
     width: 14px;
     height: 14px;
     margin-top: -3.5px;
@@ -272,7 +274,7 @@ const links = {
     appearance: none;
   }
 
-  #slider::-moz-range-thumb {
+  #wl-slider::-moz-range-thumb {
     width: 12px;
     height: 12px;
     border: 1px solid #d3d3d3;
@@ -443,7 +445,7 @@ const links = {
     color: white;
   }
 
-  #noscript {
+  #wl-noscript {
     position: fixed;
     top: 1rem;
     right: 1rem;
