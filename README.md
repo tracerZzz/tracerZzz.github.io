@@ -1,6 +1,8 @@
 # tracerZzz 的博客
 
-基于 [Astro](https://astro.build/) 和 [Retypeset](https://github.com/radishzzz/astro-theme-retypeset) 主题，由原来的 Hexo 博客迁移而来。
+基于 [Astro](https://astro.build/) 和 [Firefly](https://github.com/CuteLeaf/Firefly) 主题，由原来的 Hexo 博客迁移而来。
+
+主题的配置都在 `src/config/` 下：站点信息 `siteConfig.ts`、导航 `navBarConfig.ts`、头像和简介 `profileConfig.ts`、首页横幅 `backgroundWallpaper.ts`、侧边栏 `sidebarConfig.ts`。
 
 ## 本地运行
 
@@ -41,6 +43,9 @@ published: 2026-10-22T20:00:00+08:00
 description: 一两句话的摘要（可选）
 tags:
   - git
+category: Git       # 分类（可选），一篇文章一个
+image: ./git常用命令.assets/封面.png   # 封面图（可选），显示在文章列表和文章顶部
+pinned: false       # true 表示置顶
 draft: false        # true 表示草稿，不会发布
 abbrlink: git-commands   # 网址，只能用小写字母、数字和连字符
 ---

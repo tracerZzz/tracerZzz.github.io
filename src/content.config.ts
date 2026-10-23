@@ -1,38 +1,158 @@
-import { glob } from 'astro/loaders'
-import { z } from 'astro/zod'
-import { defineCollection } from 'astro:content'
-import { allLocales, themeConfig } from '@/config'
+import { defineCollection } from "astro:content";
+import type { CollectionConfig } from "astro/content/config";
+import { glob } from "astro/loaders";
+import { type ZodType, z } from "astro/zod";
 
-const posts = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }),
-  schema: z.object({
-    // required
-    title: z.string(),
-    published: z.date(),
-    // optional
-    description: z.string().optional().default(''),
-    updated: z.preprocess(
-      val => val === '' ? undefined : val,
-      z.date().optional(),
-    ),
-    tags: z.array(z.string()).optional().default([]),
-    // Advanced
-    draft: z.boolean().optional().default(false),
-    pin: z.number().int().min(0).max(99).optional().default(0),
-    toc: z.boolean().optional().default(themeConfig.global.toc),
-    lang: z.enum(['', ...allLocales]).optional().default(''),
-    abbrlink: z.string().optional().default('').refine(
-      abbrlink => !abbrlink || /^[a-z0-9\-]*$/.test(abbrlink),
-      { message: 'Abbrlink can only contain lowercase letters, numbers and hyphens' },
-    ),
-  }),
-})
+type PostData = {
+	title: string;
+	published: Date;
+	updated?: Date;
+	draft: boolean;
+	description: string;
+	image: string;
+	tags: string[];
+	category: string | null;
+	lang: string;
+	pinned: boolean;
+	author: string;
+	sourceLink: string;
+	licenseName: string;
+	licenseUrl: string;
+	comment: boolean;
+	password: string;
+	passwordHint: string;
+	series: string;
+	seriesOrder?: number;
+	abbrlink: string;
+	prevTitle: string;
+	prevSlug: string;
+	nextTitle: string;
+	nextSlug: string;
+};
 
-const about = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/about' }),
-  schema: z.object({
-    lang: z.enum(['', ...allLocales]).optional().default(''),
-  }),
-})
+type DynamicData = {
+	published: Date;
+	pinned: boolean;
+	location: string;
+};
 
-export const collections = { posts, about }
+type ProjectLink = {
+	label: string;
+	icon: string;
+	value: string;
+};
+
+type ProjectData = {
+	title: string;
+	published: Date;
+	draft: boolean;
+	order?: number;
+	description: string;
+	image: string;
+	tags: string[];
+	link: ProjectLink[];
+	status: string;
+	lang: string;
+};
+
+type ContentCollection<T> = CollectionConfig<
+	ZodType<T>,
+	ReturnType<typeof glob>
+>;
+
+const postsCollection: ContentCollection<PostData> = defineCollection({
+	// 文章网址用 front matter 里的 abbrlink（如 /posts/git-commands/），和文件名、文件夹无关；
+	// 没写 abbrlink 时退回到文件路径
+	loader: glob({
+		pattern: "**/*.{md,mdx}",
+		base: "./src/content/posts",
+		generateId: ({ entry, data }) =>
+			typeof data.abbrlink === "string" && data.abbrlink
+				? data.abbrlink
+				: entry.replace(/\.(md|mdx)$/i, ""),
+	}),
+	schema: z.object({
+		title: z.string(),
+		published: z.date(),
+		updated: z.date().optional(),
+		draft: z.boolean().optional().default(false),
+		description: z.string().optional().default(""),
+		image: z.string().optional().default(""),
+		tags: z.array(z.string()).optional().default([]),
+		category: z.string().optional().nullable().default(""),
+		lang: z.string().optional().default(""),
+		pinned: z.boolean().optional().default(false),
+		author: z.string().optional().default(""),
+		sourceLink: z.string().optional().default(""),
+		licenseName: z.string().optional().default(""),
+		licenseUrl: z.string().optional().default(""),
+		comment: z.boolean().optional().default(true),
+		password: z.string().optional().default(""),
+		passwordHint: z.string().optional().default(""),
+		series: z.string().optional().default(""),
+		seriesOrder: z.number().optional(),
+		abbrlink: z
+			.string()
+			.regex(/^[a-z0-9-]*$/, "abbrlink 只能用小写字母、数字和连字符")
+			.optional()
+			.default(""),
+
+		/* For internal use */
+		prevTitle: z.string().default(""),
+		prevSlug: z.string().default(""),
+		nextTitle: z.string().default(""),
+		nextSlug: z.string().default(""),
+	}),
+});
+
+const specCollection: ContentCollection<Record<string, never>> =
+	defineCollection({
+		loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/spec" }),
+		schema: z.object({}),
+	});
+
+const dynamicCollection: ContentCollection<DynamicData> = defineCollection({
+	loader: glob({ pattern: "**/*.md", base: "./src/content/dynamic" }),
+	schema: z.object({
+		published: z.date(),
+		pinned: z.boolean().optional().default(false),
+		location: z.string().optional().default(""),
+	}),
+});
+
+const projectsCollection: ContentCollection<ProjectData> = defineCollection({
+	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/projects" }),
+	schema: z.object({
+		title: z.string(),
+		published: z.date(),
+		draft: z.boolean().optional().default(false),
+		order: z.number().optional(),
+		description: z.string().optional().default(""),
+		image: z.string().optional().default(""),
+		tags: z.array(z.string()).optional().default([]),
+		link: z
+			.array(
+				z.object({
+					label: z.string(),
+					icon: z.string().optional().default(""),
+					value: z.string(),
+				}),
+			)
+			.optional()
+			.default([]),
+		status: z.string().optional().default(""),
+		lang: z.string().optional().default(""),
+	}),
+});
+
+export const collections: {
+	dynamic: typeof dynamicCollection;
+	posts: typeof postsCollection;
+	spec: typeof specCollection;
+	projects: typeof projectsCollection;
+} = {
+	dynamic: dynamicCollection,
+	posts: postsCollection,
+	spec: specCollection,
+	projects: projectsCollection,
+};

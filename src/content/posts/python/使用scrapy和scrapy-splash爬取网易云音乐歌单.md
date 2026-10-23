@@ -6,6 +6,8 @@ tags:
   - python
   - scrapy
 draft: false
+category: Python
+image: ./使用scrapy和scrapy-splash爬取网易云音乐歌单.assets/2018051515263513332302.png
 abbrlink: scrapy-netease-music-playlist
 ---
 

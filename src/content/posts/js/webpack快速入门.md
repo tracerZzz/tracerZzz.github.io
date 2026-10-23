@@ -5,6 +5,8 @@ description: webpack已经成为前端工程构建的重要工具，这篇文章
 tags:
   - webpack
 draft: false
+category: JavaScript
+image: ./webpack快速入门.assets/20180308152048985612690.png
 abbrlink: webpack-quick-start
 ---
 

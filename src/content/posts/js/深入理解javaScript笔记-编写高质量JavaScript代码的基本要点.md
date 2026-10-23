@@ -5,6 +5,7 @@ description: 如何编写高质量的js代码，这篇文章记录了js编码过
 tags:
   - js
 draft: false
+category: JavaScript
 abbrlink: high-quality-javascript-basics
 ---
 

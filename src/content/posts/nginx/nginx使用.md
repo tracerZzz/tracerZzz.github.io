@@ -5,6 +5,7 @@ description: nginx作为目前主流的服务器，在众多领域都有着他�
 tags:
   - nginx
 draft: false
+category: Nginx
 abbrlink: nginx-usage
 ---
 

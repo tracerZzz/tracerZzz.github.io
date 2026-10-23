@@ -8,6 +8,7 @@ tags:
   - 博客
   - 部署
 draft: false
+category: 博客
 abbrlink: hexo-to-astro-migration
 ---
 

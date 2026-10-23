@@ -5,6 +5,8 @@ description: docker在实际的开发、学习以及线上部署中已经频繁�
 tags:
   - docker
 draft: false
+category: Docker
+image: ./docker命令.assets/2018061615291325776173.png
 abbrlink: docker-commands
 ---
 

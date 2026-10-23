@@ -5,6 +5,7 @@ description: 在github账号已经配置为全局的情况下，如何再进行g
 tags:
   - git
 draft: false
+category: Git
 abbrlink: gitlab-and-github
 ---
 

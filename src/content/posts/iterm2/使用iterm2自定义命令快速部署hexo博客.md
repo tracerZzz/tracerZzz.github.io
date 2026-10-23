@@ -5,6 +5,7 @@ description: 由于工作中使用命令终端的频率非常之高，自定义�
 tags:
   - iterm2
 draft: false
+category: 工具
 abbrlink: iterm2-custom-commands
 ---
 

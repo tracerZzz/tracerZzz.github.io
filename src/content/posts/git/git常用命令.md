@@ -5,6 +5,8 @@ description: 在开发过程中git已经是必不可少的版本控制以及团�
 tags:
   - git
 draft: false
+category: Git
+image: ./git常用命令.assets/20180514152628079993927.png
 abbrlink: git-commands
 ---
 

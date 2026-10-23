@@ -6,6 +6,8 @@ tags:
   - webbench
   - nginx
 draft: false
+category: 架构
+image: ./压力测试工具webbench安装与使用.assets/20180616152907932443010.png
 abbrlink: webbench-nginx-stress-test
 ---
 

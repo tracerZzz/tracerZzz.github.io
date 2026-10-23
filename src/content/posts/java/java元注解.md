@@ -5,6 +5,8 @@ description: java元注解理解
 tags:
   - java
 draft: false
+category: Java
+image: ./java元注解.assets/2018031215208216305763.png
 abbrlink: java-meta-annotations
 ---
 
