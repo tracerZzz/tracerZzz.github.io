@@ -1,7 +1,7 @@
 ---
 title: 从 Hexo 迁移到 Astro：图片找回、旧链接、欢迎页重写与双站点部署
 published: 2026-10-23T10:30:00+08:00
-updated: 2026-10-23T21:30:00+08:00
+updated: 2026-10-23T22:45:00+08:00
 description: 记录把 2016 年搭的 Hexo 博客迁移到 Astro 的全过程：从七牛找回图片、转换文章、保留旧链接、重写 SVG 动画欢迎页、搭建自动检查，部署到阿里云 ESA 和 GitHub Pages，以及从 Retypeset 换到 Firefly 主题，中间踩过的坑和背后的原理。
 tags:
   - astro
@@ -457,6 +457,33 @@ function shareUrl(): string {
 
 现在只有按 F5 刷新页面才会整页重新加载，`music-resume.ts` 留着处理这种情况，会停一两秒再接着放。浏览器的自动播放策略也要考虑：大多数情况下 Chrome 允许接着放，Safari 可能拦下来，这时点一下播放，会从原来的位置继续。
 
+### 评论：从 Gitment 到 Giscus
+
+旧博客用的是 Gitment：每篇文章对应仓库里的一个 GitHub Issue，访客用 GitHub 账号登录后评论，评论就是 Issue 下面的回复。翻了一下，当年每篇文章都建了 Issue，真正有评论的只有两篇，各一条，这次就不迁了。Gitment 本身早就不能用了，它依赖作者搭的一个登录中转服务，那个服务已经停了。
+
+Firefly 内置了五种评论系统，改 `src/config/commentConfig.ts` 就能切换：
+
+| 方案 | 评论存在哪 | 访客要登录吗 | 要自己搭服务吗 | 国内访问 |
+|---|---|---|---|---|
+| Giscus | 仓库的 GitHub Discussions | 要，GitHub 账号 | 不用 | 能用，偶尔慢 |
+| Twikoo | 自己部署的云函数 + 数据库 | 不用 | 要 | 好 |
+| Waline | 自己部署的后端 + 数据库 | 不用 | 要 | 看部署在哪 |
+| Artalk | 自己的服务器 | 不用 | 要 | 好 |
+| Disqus | Disqus 公司 | 要 | 不用 | 基本打不开 |
+
+选了 **Giscus**。它和 Gitment 是一个思路，借 GitHub 存评论，只是从 Issues 换成了 Discussions。不用部署后端，不花钱，数据在自己仓库里，不怕第三方服务关停；技术博客的读者大多也有 GitHub 账号。代价是没有 GitHub 账号的人没法评论，想让任何人都能匿名评论，就得换 Twikoo 这类要自己搭后端的方案。
+
+配置步骤：
+
+1. 仓库 Settings → General → Features 里打开 **Discussions**。Giscus 要求仓库是公开的，前面为了 GitHub Pages 已经改成公开了。
+2. 安装 Giscus 的 GitHub App，只授权这一个仓库。
+3. 在 `commentConfig.ts` 里把 `type` 改成 `giscus`，填上仓库名、仓库 ID、分类和分类 ID。分类用的是 **Announcements**，这是 Giscus 推荐的：这个分类只有仓库管理员和 Giscus 能新建讨论，别人没法在里面乱发帖。
+4. `mapping` 用 `pathname`：按文章网址找对应的讨论。主站和备用站的同一篇文章网址路径一样，所以两边共用一组评论；网址是 `slug` 决定的、不会变，评论也就不会对不上。
+
+仓库 ID 和分类 ID 一般是去 giscus.app 填仓库名自动生成的。这次是直接从 GitHub 的接口查到的：仓库信息里的 `node_id` 就是仓库 ID，分类 ID 从开启 Discussions 时自动生成的那条欢迎帖里能看到。
+
+顺带处理了一个安全问题：旧的 Hexo 配置文件里写着 Gitment 用的 GitHub OAuth 应用密钥（`client_secret`），它在 `hexoWorkspace` 仓库里，也被打包进了 `hexo-site` 分支的每个页面。仓库公开后谁都能看到，所以把那个 OAuth 应用删掉了。教训是：**往仓库里提交配置前，先确认里面没有密钥**。前端页面里出现的东西，就当作是公开的。
+
 ### 其他小事
 
 - **横幅壁纸**换成了饥荒联机版的加载界面，开了轮播，淡入淡出切换。头像换回了原来 Hexo 博客用的柴犬。
@@ -560,7 +587,7 @@ git add -A && git commit -m "新文章" && git push
 - 正式切换到 Obsidian 管理所有 Markdown。
 - `www` 跳转到根域名的规则。
 - 草稿慢慢整理发布。
-- 评论系统、访问统计。
+- 访问统计。
 
 ## 回头看
 

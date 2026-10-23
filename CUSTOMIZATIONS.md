@@ -34,6 +34,7 @@
 | `backgroundWallpaper.ts` | 横幅壁纸换成饥荒联机版加载界面（`src/assets/images/wallpaper/`），开轮播、淡入淡出、8 秒；关掉背景视频；横幅标题、副标题、按钮（GitHub / 欢迎页 / RSS）；图片位置 |
 | `sidebarConfig.ts` | 关掉公告、动态两个侧边栏组件 |
 | `musicConfig.ts` | 音乐播放器改用 Meting 接口播放网易云歌单 `2059184801`，导航栏和侧边栏都显示 |
+| `commentConfig.ts` | 评论系统改为 Giscus：仓库 `tracerZzz/tracerZzz.github.io`，Discussions 分类 Announcements，按网址（pathname）区分评论 |
 
 ## 三、我们自己加的文件（主题里没有，升级不会冲突）
 
