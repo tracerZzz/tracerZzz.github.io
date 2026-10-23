@@ -93,13 +93,10 @@ const links = {
         </div>
       </section>
     </div>
-    <!-- 网易云音乐歌单播放器（点击音乐图标时弹出，关闭时移除以停止播放） -->
-    <div id="musicmodal" role="dialog" aria-modal="true" aria-label="网易云音乐歌单" hidden>
-      <div class="music-panel">
-        <button id="musicclose" type="button" aria-label="关闭">×</button>
-        <div id="musicframe"></div>
-        <a class="music-open" href={links.music} target="_blank" rel="noopener">在网易云音乐中打开 ↗</a>
-      </div>
+    <!-- 网易云音乐迷你播放器：鼠标移到音乐图标上时出现，移开后隐藏但继续播放 -->
+    <div id="musicpop" aria-label="网易云音乐歌单">
+      <div id="musicframe"></div>
+      <a class="music-open" href={links.music} target="_blank" rel="noopener">在网易云音乐中打开歌单 ↗</a>
     </div>
     <noscript><a id="noscript" href={links.blog}>进入博客 →</a></noscript>
 
@@ -263,64 +260,42 @@ const links = {
     background: #e6e6e6;
   }
 
-  /* 网易云音乐播放器弹窗 */
-  #musicmodal {
+  /* 网易云音乐迷你播放器（隐藏时用 visibility，不用 display:none，保证音乐继续播放） */
+  #musicpop {
     position: fixed;
-    inset: 0;
     z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.6);
-  }
-
-  #musicmodal[hidden] {
-    display: none;
-  }
-
-  .music-panel {
-    position: relative;
-    padding: 12px 12px 8px;
+    padding: 8px 8px 4px;
     border: 1px solid #cb2727;
-    border-radius: 12px;
+    border-radius: 10px;
     background: #111;
     font-family: system-ui, sans-serif;
     text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: opacity 0.2s, transform 0.2s, visibility 0s 0.2s;
+  }
+
+  #musicpop.show {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.2s, transform 0.2s;
   }
 
   #musicframe iframe {
     display: block;
     width: 330px;
-    max-width: calc(100vw - 56px);
-    height: 450px;
+    max-width: calc(100vw - 40px);
+    height: 86px;
     border: 0;
-    border-radius: 6px;
-  }
-
-  #musicclose {
-    position: absolute;
-    top: -14px;
-    right: -14px;
-    width: 28px;
-    height: 28px;
-    border: 1px solid #cb2727;
-    border-radius: 50%;
-    background: #111;
-    color: #d3d3d3;
-    font-size: 18px;
-    line-height: 26px;
-    cursor: pointer;
-  }
-
-  #musicclose:hover {
-    color: white;
   }
 
   .music-open {
     display: inline-block;
-    margin-top: 8px;
-    color: #9a9a9a;
-    font-size: 13px;
+    margin-top: 2px;
+    color: #8a8a8a;
+    font-size: 12px;
     text-decoration: none;
   }
 

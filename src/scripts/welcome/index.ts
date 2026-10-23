@@ -123,41 +123,80 @@ button.addEventListener('keydown', (e) => {
 
 set('.gmenulist', { opacity: 0 })
 
-// ---------- 网易云音乐歌单：在页面内弹出外链播放器 ----------
+// ---------- 网易云音乐：鼠标移到音乐图标上出现迷你播放器，移开后隐藏、继续播放 ----------
 const musicLink = document.querySelector<SVGAElement>('#musiclink')! // SVG 里的 <a>
-const musicModal = document.querySelector<HTMLElement>('#musicmodal')!
+const musicIcon = document.querySelector<SVGGElement>('#rightbottom')!
+const musicPop = document.querySelector<HTMLElement>('#musicpop')!
 const musicFrame = document.querySelector<HTMLElement>('#musicframe')!
+let hideTimer = 0
 
-function openMusic() {
-  const id = musicLink.dataset.playlist
+// 第一次需要时才加载播放器，之后一直保留（移除了音乐就停了）
+function ensurePlayer() {
+  if (musicFrame.firstChild)
+    return
   const iframe = document.createElement('iframe')
   iframe.title = '网易云音乐歌单'
   iframe.allow = 'autoplay'
-  // 网易云官方外链播放器：type=0 表示歌单，auto=1 自动播放，height 是播放器内容高度
-  iframe.src = `https://music.163.com/outchain/player?type=0&id=${id}&auto=1&height=430`
-  musicFrame.replaceChildren(iframe)
-  musicModal.hidden = false
-  document.querySelector<HTMLButtonElement>('#musicclose')!.focus()
+  // 网易云官方外链播放器：type=0 歌单，auto=0 不自动播放，height=66 是只有播放条的紧凑样式
+  iframe.src = `https://music.163.com/outchain/player?type=0&id=${musicLink.dataset.playlist}&auto=0&height=66`
+  musicFrame.append(iframe)
 }
 
-function closeMusic() {
-  musicModal.hidden = true
-  musicFrame.replaceChildren() // 移除播放器，音乐随之停止
+// 播放器放在音乐图标正上方，超出屏幕时往里挪
+function placePopover() {
+  const r = musicIcon.querySelector('.menulist')!.getBoundingClientRect()
+  const w = musicPop.offsetWidth
+  const h = musicPop.offsetHeight
+  const left = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8)
+  const top = r.top - h - 12 >= 8 ? r.top - h - 12 : r.bottom + 12
+  musicPop.style.left = `${left}px`
+  musicPop.style.top = `${top}px`
 }
 
+function showMusic() {
+  clearTimeout(hideTimer)
+  ensurePlayer()
+  placePopover()
+  musicPop.classList.add('show')
+}
+
+function hideMusicSoon() {
+  clearTimeout(hideTimer)
+  hideTimer = window.setTimeout(() => musicPop.classList.remove('show'), 400)
+}
+
+// 鼠标在图标或播放器上时显示；离开两者后稍等一下再隐藏，方便把鼠标移到播放器上
+musicIcon.addEventListener('mouseenter', () => {
+  if (open)
+    showMusic()
+})
+musicIcon.addEventListener('mouseleave', hideMusicSoon)
+musicPop.addEventListener('mouseenter', () => clearTimeout(hideTimer))
+musicPop.addEventListener('mouseleave', hideMusicSoon)
+
+// 点击图标：手机上没有悬停，点一下显示、再点一下隐藏；按住 Cmd/Ctrl 点击照常打开歌单页
 musicLink.addEventListener('click', (e) => {
-  // 按住 Cmd/Ctrl 或中键点击时，照常在新标签页打开歌单
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)
     return
   e.preventDefault()
-  openMusic()
+  if (musicPop.classList.contains('show'))
+    musicPop.classList.remove('show')
+  else
+    showMusic()
 })
-document.querySelector('#musicclose')!.addEventListener('click', closeMusic)
-musicModal.addEventListener('click', (e) => {
-  if (e.target === musicModal)
-    closeMusic()
+
+// 点页面其他地方、按 Esc、收起菜单时隐藏（音乐不停）
+document.addEventListener('click', (e) => {
+  const t = e.target as Node
+  if (!musicPop.contains(t) && !musicIcon.contains(t))
+    musicPop.classList.remove('show')
 })
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !musicModal.hidden)
-    closeMusic()
+  if (e.key === 'Escape')
+    musicPop.classList.remove('show')
+})
+button.addEventListener('click', () => musicPop.classList.remove('show'))
+window.addEventListener('resize', () => {
+  if (musicPop.classList.contains('show'))
+    placePopover()
 })
