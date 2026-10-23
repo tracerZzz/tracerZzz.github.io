@@ -142,6 +142,10 @@ export default defineConfig({
 			globalInstance: true,
 			// 滚动相关配置优化
 			resolveUrl: (url) => url,
+			// 欢迎页是独立页面，没有 swup 的容器：进出欢迎页都走普通的整页跳转，避免切换时的残影
+			ignore: (url) =>
+				new URL(url, window.location.href).pathname.startsWith("/welcome") ||
+				window.location.pathname.startsWith("/welcome"),
 			animateHistoryBrowsing: false,
 			skipPopStateHandling: (event) => {
 				// 跳过锚点链接的处理，让浏览器原生处理
