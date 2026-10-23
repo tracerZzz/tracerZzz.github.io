@@ -46,8 +46,21 @@ function hookSwup(swup: { hooks: SwupHooks }) {
 
 void mountIfPresent()
 
+// swup 是在页面空闲时才初始化的（比这个脚本晚），等它就绪再注册钩子
 const w = window as unknown as { swup?: { hooks: SwupHooks } }
-if (w.swup)
+let hooked = false
+function tryHook() {
+  if (hooked || !w.swup?.hooks)
+    return false
+  hooked = true
   hookSwup(w.swup)
-else
-  document.addEventListener('swup:enable', () => w.swup && hookSwup(w.swup), { once: true })
+  return true
+}
+if (!tryHook()) {
+  document.addEventListener('swup:enable', tryHook, { once: true })
+  const timer = window.setInterval(() => {
+    if (tryHook())
+      clearInterval(timer)
+  }, 200)
+  setTimeout(() => clearInterval(timer), 30000)
+}
