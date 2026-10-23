@@ -149,7 +149,10 @@ function registerSwupHooks(): void {
 
 		// 更新首页状态（body.is-home 驱动 CSS --content-top 等）
 		const bodyElement = document.querySelector("body") as HTMLElement;
-		const isHomePage = pathsEqual(visit.to.url, url("/"));
+		// 文章列表的分页（/2/、/3/ …）也算首页，和第一页的横幅保持一致
+		const isHomePage =
+			pathsEqual(visit.to.url, url("/")) ||
+			/^\/\d+\/?$/.test(new URL(visit.to.url, window.location.href).pathname);
 		const wasHome = bodyElement.classList.contains("is-home");
 		const contentPanel = document.querySelector(
 			".content-panel",

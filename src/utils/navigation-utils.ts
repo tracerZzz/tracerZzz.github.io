@@ -149,7 +149,8 @@ export function getCurrentPath(): string {
  */
 export function isHomePage(): boolean {
 	const path = getCurrentPath();
-	return path === url("/") || path === url("");
+	// 文章列表的分页（/2/、/3/ …）也算首页，和第一页的横幅保持一致
+	return path === url("/") || path === url("") || /^\/\d+\/?$/.test(path);
 }
 
 /**

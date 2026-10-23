@@ -75,6 +75,8 @@ export const isHomePage = (pathname: string): boolean => {
 	if (pathname === baseUrl) return true;
 	if (pathname === baseUrlNoSlash) return true;
 	if (pathname === "/") return true;
+	// 文章列表的分页（/2/、/3/ …）也按首页显示横幅，和第一页保持一致
+	if (/^\/\d+\/?$/.test(pathname)) return true;
 
 	return false;
 };
