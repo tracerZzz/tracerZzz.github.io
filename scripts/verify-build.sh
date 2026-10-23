@@ -9,7 +9,8 @@ for f in $(grep -rl '^draft: false' src/content/posts --include='*.md'); do
   slug=$(sed -n 's/^abbrlink: //p' "$f")
   page="dist/posts/$slug/index.html"
   [ -f "$page" ] || { err "missing page for $f ($page)"; continue; }
-  want=$(grep -c '](\./[^)]*\.assets/' "$f")
+  # 只数正文里真正的图片：去掉代码块和行内代码里的示例写法
+  want=$(perl -0777 -ne 's/^```.*?^```//gms; s/`[^`\n]*`//g; $n = () = /!\[[^\]]*\]\(\.\/[^)]*\.assets\//g; print $n' "$f")
   got=$(grep -o '<img[^>]*src="/_astro/[^"]*"' "$page" | wc -l)
   [ "$got" -ge "$want" ] || err "$slug: expected $want images, page has $got"
   grep -q 'tracerzzz\.ltd' "$page" && err "$slug still references tracerzzz.ltd"
