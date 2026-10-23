@@ -6,7 +6,7 @@ tags:
   - iterm2
 draft: false
 category: 工具
-abbrlink: iterm2-custom-commands
+slug: iterm2-custom-commands
 ---
 
 环境：iTerm+zsh

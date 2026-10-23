@@ -7,7 +7,7 @@ tags:
 draft: false
 category: Java
 image: ./java元注解.assets/2018031215208216305763.png
-abbrlink: java-meta-annotations
+slug: java-meta-annotations
 ---
 
 ![](./java元注解.assets/2018031215208216305763.png)

@@ -23,7 +23,6 @@ type PostData = {
 	passwordHint: string;
 	series: string;
 	seriesOrder?: number;
-	abbrlink: string;
 	prevTitle: string;
 	prevSlug: string;
 	nextTitle: string;
@@ -61,16 +60,7 @@ type ContentCollection<T> = CollectionConfig<
 >;
 
 const postsCollection: ContentCollection<PostData> = defineCollection({
-	// 文章网址用 front matter 里的 abbrlink（如 /posts/git-commands/），和文件名、文件夹无关；
-	// 没写 abbrlink 时退回到文件路径
-	loader: glob({
-		pattern: "**/*.{md,mdx}",
-		base: "./src/content/posts",
-		generateId: ({ entry, data }) =>
-			typeof data.abbrlink === "string" && data.abbrlink
-				? data.abbrlink
-				: entry.replace(/\.(md|mdx)$/i, ""),
-	}),
+	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/posts" }),
 	schema: z.object({
 		title: z.string(),
 		published: z.date(),
@@ -91,11 +81,6 @@ const postsCollection: ContentCollection<PostData> = defineCollection({
 		passwordHint: z.string().optional().default(""),
 		series: z.string().optional().default(""),
 		seriesOrder: z.number().optional(),
-		abbrlink: z
-			.string()
-			.regex(/^[a-z0-9-]*$/, "abbrlink 只能用小写字母、数字和连字符")
-			.optional()
-			.default(""),
 
 		/* For internal use */
 		prevTitle: z.string().default(""),

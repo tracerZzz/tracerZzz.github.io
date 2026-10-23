@@ -8,7 +8,7 @@ tags:
 draft: false
 category: 架构
 image: ./压力测试工具webbench安装与使用.assets/20180616152907932443010.png
-abbrlink: webbench-nginx-stress-test
+slug: webbench-nginx-stress-test
 ---
 
 Webbench能测试处在相同硬件上，不同服务的性能以及不同硬件上同一个服务的运行状况。webbench的标准测试可以向我们展示服务器的两项内容：**每秒钟相应请求数和每秒钟传输数据量。**webbench不但能具有便准静态页面的测试能力，还能对动态页面（ASP,PHP,JAVA,CGI）进 行测试的能力。还有就是他支持对含有SSL的安全网站例如电子商务网站进行静态或动态的性能测试。 **Webbench最多可以模拟3万个并发连接去测试网站的负载能力。

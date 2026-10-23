@@ -6,7 +6,7 @@ tags:
   - nginx
 draft: false
 category: Nginx
-abbrlink: nginx-usage
+slug: nginx-usage
 ---
 
 ### nginx手动编译（centos7）

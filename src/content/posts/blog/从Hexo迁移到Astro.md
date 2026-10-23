@@ -1,7 +1,7 @@
 ---
 title: 从 Hexo 迁移到 Astro：图片找回、旧链接、欢迎页重写与双站点部署
 published: 2026-10-23T10:30:00+08:00
-updated: 2026-10-23T19:00:00+08:00
+updated: 2026-10-23T19:10:00+08:00
 description: 记录把 2016 年搭的 Hexo 博客迁移到 Astro 的全过程：从七牛找回图片、转换文章、保留旧链接、重写 SVG 动画欢迎页、搭建自动检查，部署到阿里云 ESA 和 GitHub Pages，以及从 Retypeset 换到 Firefly 主题，中间踩过的坑和背后的原理。
 tags:
   - astro
@@ -10,7 +10,7 @@ tags:
   - 部署
 draft: false
 category: 博客
-abbrlink: hexo-to-astro-migration
+slug: hexo-to-astro-migration
 ---
 
 这个博客 2016 年用 Hexo 搭起来，写到 2018 年就基本停了。这几年它悄悄坏掉了：图床域名过期，所有文章的图片都打不开；本地的 Hexo 环境早就没了，想改点东西都得先折腾半天。
@@ -103,7 +103,7 @@ curl --aws-sigv4 "aws:amz:cn-east-1:s3" \
 | 无 | 没有 | `image` | 封面图，显示在文章列表和文章顶部 |
 | 无 | `pin: 1` | `pinned: true` | 置顶 |
 | `_draft` 目录 | `draft: true` | `draft: true` | 草稿不会发布 |
-| `permalink` 规则（全局） | `abbrlink` | `abbrlink`（我加的） | 文章网址，比如 `git-commands` 对应 `/posts/git-commands/`。Firefly 本身没有这个字段，是我改主题加上的，见第十二节 |
+| `permalink` 规则（全局） | `abbrlink` | `slug` | 文章网址，比如 `git-commands` 对应 `/posts/git-commands/`。Retypeset 用的是自己的 `abbrlink` 字段；换到 Firefly 后改用 Astro 自带的 `slug`，见第十二节 |
 
 现在一篇文章开头的完整写法：
 
@@ -117,7 +117,7 @@ tags:
 category: Git
 image: ./git常用命令.assets/20180514152628079993927.png
 draft: false
-abbrlink: git-commands
+slug: git-commands
 ---
 ```
 
@@ -133,7 +133,7 @@ abbrlink: git-commands
 
 ### 文件命名
 
-最开始文件名用的是英文（和网址一致），后来改成了文章标题，比如 `git常用命令.md`。因为**网址由 `abbrlink` 决定，和文件名、文件夹都无关**，文件名用中文在编辑器里更好认，移动文件或改名也不会影响网址。文件夹按主题分，统一用英文。
+最开始文件名用的是英文（和网址一致），后来改成了文章标题，比如 `git常用命令.md`。因为**网址由开头的 `slug` 决定，和文件名、文件夹都无关**（迁移时叫 `abbrlink`，换主题后改成了 Astro 自带的 `slug`），文件名用中文在编辑器里更好认，移动文件或改名也不会影响网址。文件夹按主题分，统一用英文。
 
 文件名里要避开两类字符：
 - **空格**：Markdown 图片链接里的路径不能有空格，有空格就得用 `<>` 包起来，很容易出错。
@@ -340,11 +340,11 @@ HSTS 暂时没开：它会让浏览器在设定的时长内只认 HTTPS，一旦
 
 换主题时没有直接在 `master` 上改，而是开了一个 `theme-firefly` 分支：把 Firefly 的代码放进去，再把文章、图片、跳转页、欢迎页、ESA 配置、检查脚本搬回来。GitHub Actions 会构建这个分支、跑检查，但不发布；本地 `pnpm dev` 看满意了，再合并到 `master`。
 
-### 保持网址不变：用 `abbrlink` 当文章 ID
+### 保持网址不变：从 `abbrlink` 换成 `slug`
 
-Firefly 用文件路径生成文章网址，比如 `git/git常用命令.md` 会变成 `/posts/git/git常用命令/`。直接用的话，所有网址都会变，旧链接跳转页也全部失效。
+Firefly 用文件路径生成文章网址，比如 `git/git常用命令.md` 会变成 `/posts/git/git常用命令/`。直接这样用的话，所有网址都会变，旧链接跳转页也全部失效。
 
-Astro 的内容集合可以自定义每篇文章的 ID，改一处就够了：
+**第一版做法**：沿用 Retypeset 时代的 `abbrlink` 字段，在内容集合里自定义文章 ID：
 
 ```ts
 loader: glob({
@@ -358,7 +358,11 @@ loader: glob({
 }),
 ```
 
-主题里所有生成文章链接的地方用的都是这个 ID，所以文章页、列表、归档、上一篇下一篇、RSS 的网址都跟着变回了 `/posts/git-commands/` 这种格式。另外在字段定义里加上 `abbrlink`，并限制只能用小写字母、数字和连字符。不加这一步，Astro 会把不认识的字段直接丢掉。
+主题里所有生成文章链接的地方用的都是这个 ID，所以网址都变回了 `/posts/git-commands/`。能用，但这是改了主题的代码，以后升级主题时，这几行可能会被覆盖，或者和新版本冲突。
+
+**现在的做法**：后来发现根本不用改代码。Astro 的 `glob` 加载器本身就有这个规则：文章开头写了 `slug`，就用它当 ID；没写，才用文件路径。Firefly 自带的 `pnpm new-post` 生成的也是 `slug` 字段。于是把所有文章的 `abbrlink` 改名为 `slug`，再删掉上面那段自定义代码，`content.config.ts` 就和主题原版一模一样了。网址一个没变。
+
+`slug` 只用小写字母、数字和连字符，不要带 `/`，带了网址里就会多出一层目录。
 
 ### 分类和封面
 
@@ -393,7 +397,7 @@ swup({
 - **横幅壁纸**换成了饥荒联机版的加载界面，开了轮播，淡入淡出切换。头像换回了原来 Hexo 博客用的柴犬。
 - **关掉了用不上的功能**：友链、留言板、动态、相册、音乐播放器、公告、打赏、看板娘。在 `src/config/siteConfig.ts` 里都是一个开关。
 - **删掉了主题仓库自带的 GitHub 配置**：Issue 模板、赞助按钮、Dependabot。Dependabot 是给主题作者自己的仓库自动升级依赖用的，留着它会在我的仓库里不停建分支。
-- **`pnpm new-post` 也改了**：生成的文章开头带上 `abbrlink`，日期带上 `+08:00` 时区。
+- **`pnpm new-post` 也改了**：生成的 `slug` 只取文件名部分（不带文件夹），日期带上 `+08:00` 时区。
 - **本地预览的小坑**：切到新主题的分支后，再运行一次 `pnpm dev`，如果旧主题的预览服务还开着，新的会自动换到 4322 端口。这时去 4321 端口看到的还是旧主题。
 
 ## 十三、写作工具配置

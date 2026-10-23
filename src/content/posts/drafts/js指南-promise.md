@@ -5,6 +5,6 @@ description: javascript promise
 tags:
   - js
 draft: true
-abbrlink: js-guide-promise
+slug: js-guide-promise
 ---
 

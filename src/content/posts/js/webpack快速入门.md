@@ -7,7 +7,7 @@ tags:
 draft: false
 category: JavaScript
 image: ./webpack快速入门.assets/20180308152048985612690.png
-abbrlink: webpack-quick-start
+slug: webpack-quick-start
 ---
 
 ### webpack介绍

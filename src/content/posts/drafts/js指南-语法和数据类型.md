@@ -5,7 +5,7 @@ description: javascript 变量、常量的声明，作用域，变量提升，�
 tags:
   - js
 draft: true
-abbrlink: js-guide-grammar-types
+slug: js-guide-grammar-types
 ---
 
 ### 变量声明

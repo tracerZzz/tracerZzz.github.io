@@ -6,7 +6,7 @@ tags:
   - git
 draft: false
 category: Git
-abbrlink: gitlab-and-github
+slug: gitlab-and-github
 ---
 
 ### github 和 gitlab 同时使用

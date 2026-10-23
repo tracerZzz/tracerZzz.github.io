@@ -6,7 +6,7 @@ tags:
   - js
 draft: false
 category: JavaScript
-abbrlink: high-quality-javascript-basics
+slug: high-quality-javascript-basics
 ---
 
 ### 最小全局变量(Minimizing Globals)

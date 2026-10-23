@@ -5,6 +5,6 @@ description: python使用过程中的一些总结
 tags:
   - python
 draft: true
-abbrlink: deep-python
+slug: deep-python
 ---
 

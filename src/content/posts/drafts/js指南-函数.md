@@ -5,7 +5,7 @@ description: javascript 函数 argumnets,箭头函数，默认参数
 tags:
   - js
 draft: true
-abbrlink: js-guide-functions
+slug: js-guide-functions
 ---
 
 ### 使用arguments对象

@@ -18,7 +18,7 @@ pnpm build     # 构建静态网站，输出到 dist/
 
 - 文章放在 `src/content/posts/`，可以按分类建子文件夹。
 - 文件名用文章标题，比如 `git/git常用命令.md`；文件夹按主题分，用英文。文件名里不要有空格和 `+`。
-- 文章网址由开头的 `abbrlink` 决定（如 `abbrlink: git-commands` → `/posts/git-commands/`），和文件名、文件夹无关，移动或改名都不影响网址。
+- 文章网址由开头的 `slug` 决定（如 `slug: git-commands` → `/posts/git-commands/`，这是 Astro 自带的功能），和文件名、文件夹无关，移动或改名都不影响网址。
 - 图片放在文章旁边的同名文件夹 `git常用命令.assets/` 里，用相对路径引用：`![](./git常用命令.assets/xxx.png)`。
 
 Typora 设置（偏好设置 → 图像）：
@@ -47,7 +47,7 @@ category: Git       # 分类（可选），一篇文章一个
 image: ./git常用命令.assets/封面.png   # 封面图（可选），显示在文章列表和文章顶部
 pinned: false       # true 表示置顶
 draft: false        # true 表示草稿，不会发布
-abbrlink: git-commands   # 网址，只能用小写字母、数字和连字符
+slug: git-commands   # 网址，只用小写字母、数字和连字符，不要带 /
 ---
 ```
 

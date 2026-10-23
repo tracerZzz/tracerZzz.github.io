@@ -91,7 +91,7 @@ tags: []
 category: ''
 draft: false
 lang: ''
-abbrlink: ${slug.split("/").pop()}
+slug: ${slug.split("/").pop()}
 ---
 `;
 

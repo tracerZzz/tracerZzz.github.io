@@ -12,7 +12,7 @@ done; }
 
 # every published post has a page, and its local images were bundled
 for f in $(posts published); do
-  slug=$(field "$f" abbrlink)
+  slug=$(field "$f" slug)
   page="dist/posts/$slug/index.html"
   [ -f "$page" ] || { err "missing page for $f ($page)"; continue; }
   # 只数正文里真正的图片：去掉代码块和行内代码里的示例写法
@@ -25,7 +25,7 @@ done
 
 # drafts are not published
 for f in $(posts drafts); do
-  slug=$(field "$f" abbrlink)
+  slug=$(field "$f" slug)
   [ -e "dist/posts/$slug/index.html" ] && err "draft published: $slug"
 done
 
