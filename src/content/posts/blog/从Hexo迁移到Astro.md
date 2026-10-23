@@ -1,7 +1,8 @@
 ---
 title: 从 Hexo 迁移到 Astro：图片找回、旧链接、欢迎页重写与双站点部署
 published: 2026-10-23T10:30:00+08:00
-description: 记录把 2016 年搭的 Hexo 博客迁移到 Astro 的全过程：从七牛找回图片、转换文章、保留旧链接、重写 SVG 动画欢迎页、搭建自动检查，以及部署到阿里云 ESA 和 GitHub Pages，中间踩过的坑和背后的原理。
+updated: 2026-10-23T19:00:00+08:00
+description: 记录把 2016 年搭的 Hexo 博客迁移到 Astro 的全过程：从七牛找回图片、转换文章、保留旧链接、重写 SVG 动画欢迎页、搭建自动检查，部署到阿里云 ESA 和 GitHub Pages，以及从 Retypeset 换到 Firefly 主题，中间踩过的坑和背后的原理。
 tags:
   - astro
   - hexo
@@ -32,7 +33,7 @@ abbrlink: hexo-to-astro-migration
 3. **欢迎页保留**：但要改成"改了源码就能自动打包"的形式，不再手动 webpack。
 4. **主站放国内，再留一个备用**：主站用阿里云 ESA（边缘安全加速）的 Pages，国内访问快；GitHub Pages 作为备用站点。
 
-框架选 Astro，主题选 [Retypeset](https://github.com/radishzzz/astro-theme-retypeset)：排版干净，中文支持好，自带 RSS、标签、目录、深色模式。
+框架选 Astro。主题一开始用的是 [Retypeset](https://github.com/radishzzz/astro-theme-retypeset)：排版干净，以文字为主。上线后觉得太素，文章列表也不能显示图片，又换成了 [Firefly](https://github.com/CuteLeaf/Firefly)（基于 Fuwari 二次开发）：卡片式布局，有封面图、首页横幅、分类和侧边栏。换主题的过程见第十二节。
 
 图片目录沿用 Typora 的习惯：每篇文章旁边一个同名的 `.assets` 文件夹，文章里用相对路径引用。
 
@@ -89,14 +90,38 @@ curl --aws-sigv4 "aws:amz:cn-east-1:s3" \
 
 ### 文章开头的元信息（front matter）
 
-| Hexo | Astro（Retypeset） | 说明 |
-|---|---|---|
-| `date` | `published` | 统一加上 `+08:00` 时区 |
-| `excerpt`（里面嵌着 HTML 图片标签） | `description` | 去掉 HTML，只留纯文字 |
-| `categories` | 没有 | 主题只有标签，分类合并到 `tags` |
-| `tags` | `tags` | 不变 |
-| 无 | `abbrlink` | 文章网址，比如 `git-commands` 对应 `/posts/git-commands/` |
-| `_draft` 目录 | `draft: true` | 草稿不会发布 |
+三套写法对比（Hexo 是原来的，Retypeset 是第一版，Firefly 是现在用的）：
+
+| Hexo | Retypeset | Firefly（现在） | 说明 |
+|---|---|---|---|
+| `title` | `title` | `title` | 不变 |
+| `date` | `published` | `published` | 统一加上 `+08:00` 时区 |
+| 无 | `updated` | `updated` | 更新时间，可选 |
+| `excerpt`（里面嵌着 HTML 图片标签） | `description` | `description` | 去掉 HTML，只留纯文字。不写的话主题会从正文截取 |
+| `tags` | `tags` | `tags` | 不变 |
+| `categories`（可以多个） | 没有 | `category`（只能一个） | Retypeset 没有分类；Firefly 有，按文章所在文件夹自动填上 |
+| 无 | 没有 | `image` | 封面图，显示在文章列表和文章顶部 |
+| 无 | `pin: 1` | `pinned: true` | 置顶 |
+| `_draft` 目录 | `draft: true` | `draft: true` | 草稿不会发布 |
+| `permalink` 规则（全局） | `abbrlink` | `abbrlink`（我加的） | 文章网址，比如 `git-commands` 对应 `/posts/git-commands/`。Firefly 本身没有这个字段，是我改主题加上的，见第十二节 |
+
+现在一篇文章开头的完整写法：
+
+```yaml
+---
+title: git常用命令
+published: 2018-04-15T16:37:11+08:00
+description: 在开发过程中 git 已经是必不可少的版本控制工具……
+tags:
+  - git
+category: Git
+image: ./git常用命令.assets/20180514152628079993927.png
+draft: false
+abbrlink: git-commands
+---
+```
+
+必填的只有 `title` 和 `published`，其他都可以省略。
 
 有个小坑：Hexo 的 `excerpt` 里直接写了没加引号的 HTML，YAML 解析会报错。脚本遇到解析失败时，先去掉 `excerpt` 再重试。
 
@@ -183,7 +208,7 @@ Hexo 的网址格式是 `/年/月/日/分类/标题/`，比如 `/2018/04/15/git/
 |---|---|---|
 | 页面 | 打开时才生成 | 一次性生成到 `dist/` |
 | 图片 | 第一次请求时才转 webp，大图要等几秒 | 构建时全部转好 |
-| 样式 | UnoCSS 边扫描边生成，偶尔会缺 | 一次性生成完整 |
+| 样式 | 边扫描边生成（Retypeset 用的 UnoCSS），偶尔会缺 | 一次性生成完整 |
 | 草稿 | **显示** | 不显示 |
 | 用途 | 写作时即时预览 | 确认上线后的样子 |
 
@@ -307,7 +332,71 @@ ESA 免费版自带 Let's Encrypt 免费证书，自动续期。申请到的是�
 
 HSTS 暂时没开：它会让浏览器在设定的时长内只认 HTTPS，一旦配置有误很难撤回，等稳定运行一段时间再说。
 
-## 十二、写作工具配置
+## 十二、换主题：从 Retypeset 到 Firefly
+
+### 为什么能换得这么轻松
+
+前面的结构从一开始就和主题无关：文章和图片在 `src/content/posts/`，旧链接跳转页在 `public/`，欢迎页是独立页面，ESA 配置和检查脚本也和主题没关系。真正要处理的只有两件事：**文章开头的字段名**，和**文章网址的生成规则**。
+
+换主题时没有直接在 `master` 上改，而是开了一个 `theme-firefly` 分支：把 Firefly 的代码放进去，再把文章、图片、跳转页、欢迎页、ESA 配置、检查脚本搬回来。GitHub Actions 会构建这个分支、跑检查，但不发布；本地 `pnpm dev` 看满意了，再合并到 `master`。
+
+### 保持网址不变：用 `abbrlink` 当文章 ID
+
+Firefly 用文件路径生成文章网址，比如 `git/git常用命令.md` 会变成 `/posts/git/git常用命令/`。直接用的话，所有网址都会变，旧链接跳转页也全部失效。
+
+Astro 的内容集合可以自定义每篇文章的 ID，改一处就够了：
+
+```ts
+loader: glob({
+  pattern: "**/*.{md,mdx}",
+  base: "./src/content/posts",
+  // 有 abbrlink 就用 abbrlink 当 ID，没有才用文件路径
+  generateId: ({ entry, data }) =>
+    typeof data.abbrlink === "string" && data.abbrlink
+      ? data.abbrlink
+      : entry.replace(/\.(md|mdx)$/i, ""),
+}),
+```
+
+主题里所有生成文章链接的地方用的都是这个 ID，所以文章页、列表、归档、上一篇下一篇、RSS 的网址都跟着变回了 `/posts/git-commands/` 这种格式。另外在字段定义里加上 `abbrlink`，并限制只能用小写字母、数字和连字符。不加这一步，Astro 会把不认识的字段直接丢掉。
+
+### 分类和封面
+
+- **分类**：用脚本给每篇文章补上 `category`，值按所在文件夹来，比如 `git/` 对应"Git"，`database/` 对应"数据库"。
+- **封面**：用正文里的第一张图。这里又踩了一次"代码里的示例被当成真图片"的坑：迁移这篇文章里有一句举例用的 `![](./文章名.assets/...)`，被脚本当成了封面，构建时找不到这个文件。改成跳过代码块里的内容就好了。
+
+### 进出欢迎页时的残影
+
+Firefly 用 swup 做页面过渡：切换页面时不整页刷新，而是只替换页面里几块固定的区域（横幅、正文、侧边栏），再配上淡入淡出。欢迎页是独立页面，没有这几块区域，所以进出欢迎页时只换掉了一部分，剩下的就成了残影。
+
+解决办法是让 swup 跳过欢迎页：
+
+```js
+swup({
+  // ...
+  ignore: (url) =>
+    new URL(url, window.location.href).pathname.startsWith("/welcome") ||
+    window.location.pathname.startsWith("/welcome"),
+}),
+```
+
+目标是欢迎页，或者当前就在欢迎页，都按普通方式整页跳转；博客内部各页面之间照样有过渡动画。
+
+### 分页后横幅位置不一样
+
+文章列表翻到第二页，横幅的壁纸取景和第一页不一样。原因是 Firefly 把横幅分成两种：首页的横幅更高、带大标题；其他页面的横幅会整体上移一截，留出更多空间给正文。主题只把 `/` 当首页，第二页的地址是 `/2/`，被当成了普通页面。
+
+把分页地址（`/2/`、`/3/`……）也算作首页就好了。这个判断主题里有三处：生成页面时一处，浏览器里 swup 切换页面时两处。三处都要改，否则直接打开第二页正常，从第一页点过去又会不一样。
+
+### 其他小事
+
+- **横幅壁纸**换成了饥荒联机版的加载界面，开了轮播，淡入淡出切换。头像换回了原来 Hexo 博客用的柴犬。
+- **关掉了用不上的功能**：友链、留言板、动态、相册、音乐播放器、公告、打赏、看板娘。在 `src/config/siteConfig.ts` 里都是一个开关。
+- **删掉了主题仓库自带的 GitHub 配置**：Issue 模板、赞助按钮、Dependabot。Dependabot 是给主题作者自己的仓库自动升级依赖用的，留着它会在我的仓库里不停建分支。
+- **`pnpm new-post` 也改了**：生成的文章开头带上 `abbrlink`，日期带上 `+08:00` 时区。
+- **本地预览的小坑**：切到新主题的分支后，再运行一次 `pnpm dev`，如果旧主题的预览服务还开着，新的会自动换到 4322 端口。这时去 4321 端口看到的还是旧主题。
+
+## 十三、写作工具配置
 
 图片跟着文章走的前提是：**编辑器粘贴图片时，要自动存到 `文章名.assets/` 文件夹，并写成相对路径**。否则图片会落到别的地方，或者变成本机绝对路径，换台电脑就打不开了。
 
@@ -348,7 +437,7 @@ HSTS 暂时没开：它会让浏览器在设定的时长内只认 HTTPS，一旦
 
 两个编辑器的约定一致，同一篇文章用 Typora 写还是用 Obsidian 写都可以，图片位置和链接写法都一样。
 
-## 十三、现在的发布流程
+## 十四、现在的发布流程
 
 ```
 本地写文章 → git push 到 master
@@ -368,7 +457,7 @@ git add -A && git commit -m "新文章" && git push
 
 两三分钟后，两个站点都更新了。构建失败不会替换线上版本；ESA 的部署记录里也可以一键回滚到之前的版本。
 
-## 十四、还没做的
+## 十五、还没做的
 
 - 正式切换到 Obsidian 管理所有 Markdown。
 - `www` 跳转到根域名的规则。
@@ -377,7 +466,7 @@ git add -A && git commit -m "新文章" && git push
 
 ## 回头看
 
-这次迁移最大的收获，是把"文章依赖外部服务"变成了"所有东西都在一个仓库里"：文章、图片、欢迎页、构建配置、部署配置，全部跟着 git 走。图床过期、平台变动、换主题、换编辑器，都不会再让博客坏掉。
+这次迁移最大的收获，是把"文章依赖外部服务"变成了"所有东西都在一个仓库里"：文章、图片、欢迎页、构建配置、部署配置，全部跟着 git 走。图床过期、平台变动、换主题、换编辑器，都不会再让博客坏掉。后来真的换了一次主题，从开分支试用到正式上线只用了一个下午，所有网址一个没变，算是验证了这个结构。
 
 另一个体会是：**大部分问题都出在"两个东西之间的约定"上**。比如空间名和 bucket 名不是一回事，BSD sed 和 GNU sed 行为不同，bash 3.2 不能按字节处理 UTF-8，Jekyll 会去解析 `.astro` 文件，泛域名证书不包含根域名。每个问题单独看都不难，难的是知道该往哪个方向怀疑。
 
