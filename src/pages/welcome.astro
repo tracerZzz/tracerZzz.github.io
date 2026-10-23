@@ -264,10 +264,13 @@ const links = {
   #musicpop {
     position: fixed;
     z-index: 10;
-    padding: 8px 8px 4px;
-    border: 1px solid #cb2727;
+    padding: 6px 6px 2px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
-    background: #111;
+    background: rgba(17, 17, 17, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
     font-family: system-ui, sans-serif;
     text-align: center;
     opacity: 0;
@@ -285,6 +288,7 @@ const links = {
 
   #musicframe iframe {
     display: block;
+    border-radius: 6px;
     width: 330px;
     max-width: calc(100vw - 40px);
     height: 86px;
