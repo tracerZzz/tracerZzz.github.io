@@ -3,10 +3,16 @@
 set -u
 fail=0
 err() { echo "::error::$*"; fail=1; }
+# 只读文章开头的 front matter（两行 --- 之间），正文里举例用的 yaml 不算
+fm() { awk 'NR==1 && /^---$/ {f=1; next} f && /^---$/ {exit} f' "$1"; }
+field() { fm "$1" | sed -n "s/^$2: *//p" | head -1; }
+posts() { find src/content/posts -name '*.md' | while read -r f; do
+  if [ "$(field "$f" draft)" = "true" ]; then [ "$1" = drafts ] && echo "$f"; else [ "$1" = published ] && echo "$f"; fi
+done; }
 
 # every published post has a page, and its local images were bundled
-for f in $(grep -rl '^draft: false' src/content/posts --include='*.md'); do
-  slug=$(sed -n 's/^abbrlink: //p' "$f")
+for f in $(posts published); do
+  slug=$(field "$f" abbrlink)
   page="dist/posts/$slug/index.html"
   [ -f "$page" ] || { err "missing page for $f ($page)"; continue; }
   # 只数正文里真正的图片：去掉代码块和行内代码里的示例写法
@@ -18,8 +24,8 @@ for f in $(grep -rl '^draft: false' src/content/posts --include='*.md'); do
 done
 
 # drafts are not published
-for f in $(grep -rl '^draft: true' src/content/posts --include='*.md'); do
-  slug=$(sed -n 's/^abbrlink: //p' "$f")
+for f in $(posts drafts); do
+  slug=$(field "$f" abbrlink)
   [ -e "dist/posts/$slug/index.html" ] && err "draft published: $slug"
 done
 
