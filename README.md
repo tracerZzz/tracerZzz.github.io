@@ -4,6 +4,8 @@
 
 主题的配置都在 `src/config/` 下：站点信息 `siteConfig.ts`、导航 `navBarConfig.ts`、头像和简介 `profileConfig.ts`、首页横幅 `backgroundWallpaper.ts`、侧边栏 `sidebarConfig.ts`。
 
+对主题源码做过的修改、以及升级主题的步骤，见 [CUSTOMIZATIONS.md](./CUSTOMIZATIONS.md)。
+
 ## 本地运行
 
 需要 Node.js 22 和 pnpm（`npm install -g pnpm`）。

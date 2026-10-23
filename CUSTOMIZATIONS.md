@@ -1,0 +1,73 @@
+# 对 Firefly 主题做过的修改
+
+本仓库的主题代码复制自 [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly)，**不是 fork**，所以升级主题时要手动合并。这份清单记录了和主题原版不一样的每一处，升级时逐项核对。
+
+- **基准版本**：Firefly v6.16.8，提交 `cd920b035b475fe9a6cd3a88afb42cf9440bb8a9`（2026-10-22）
+- **规则**：以后每改一次主题源码，都要更新这份清单，并把基准版本改成升级后的版本。
+
+## 一、主题源码的修改（升级时最容易冲突）
+
+改动处都有中文注释，搜注释里的关键词就能找到。
+
+| 文件 | 改了什么 | 为什么 | 升级后怎么检查 |
+|---|---|---|---|
+| `astro.config.mjs` | swup 配置里加了 `ignore`：目标是 `/welcome` 或当前在 `/welcome` 时不走 swup | 欢迎页是独立页面，没有 swup 的容器，过渡时会留下残影 | 首页点"欢迎页"、欢迎页点"博客"，确认是整页跳转、没有残影 |
+| `src/utils/layout-utils.ts` | `isHomePage` 把 `/2/`、`/3/`……也算首页 | 分页被当成普通页面，横幅变矮、壁纸取景和第一页不一样 | 打开 `/2/`，横幅和首页一样高、有大标题 |
+| `src/utils/navigation-utils.ts` | 同上（浏览器端的判断） | 同上 | 同上 |
+| `src/utils/swup-transitions.ts` | 同上（swup 切换页面时的判断） | 不改的话，直接打开 `/2/` 正常，从首页点过去又不一样 | 从首页点分页按钮到第二页，横幅不变 |
+| `src/components/misc/SharePoster.svelte` | 加了 `shareUrl()`，复制链接和海报二维码用当前访问的域名 | 网站同时部署在 tracerzzz.cn 和 tracerzzz.github.io，构建时写进页面的是主域名 | 在 tracerzzz.github.io 的文章页点分享 → 复制链接，粘贴出来是 github.io 的地址 |
+| `src/components/misc/License.astro` | "本文链接"加了 `data-post-link` 和一段脚本，换成当前域名 | 同上 | 在 tracerzzz.github.io 的文章底部，本文链接是 github.io 的地址 |
+| `scripts/new-post.js` | 生成的 `slug` 只取文件名（不带文件夹）；日期带时分和 `+08:00` | 带文件夹的 slug 会让网址多一层目录；没时区会被当成 UTC | `pnpm new-post git/测试`，看生成的开头 |
+
+`src/content.config.ts` 曾经改过（用 `abbrlink` 当文章 ID），后来改用 Astro 自带的 `slug` 字段，已经恢复成主题原版。
+
+## 二、配置文件（`src/config/`，本来就是给用户改的）
+
+升级时如果主题也改了这些文件，一般是加了新的配置项：保留我们的值，把新配置项加进来。
+
+| 文件 | 改了什么 |
+|---|---|
+| `siteConfig.ts` | 站点标题、副标题、网址、描述、关键词、favicon、导航栏 logo 和标题、建站日期；关掉友链、留言、动态、项目、相册、书签、打赏页面；关掉 OG 图片生成 |
+| `navBarConfig.ts` | 导航只留：主页、文章（归档/分类/标签）、关于、GitHub |
+| `profileConfig.ts` | 头像（`src/assets/images/avatar-shiba.webp`）、名字、简介、GitHub 链接；删掉邮箱 |
+| `backgroundWallpaper.ts` | 横幅壁纸换成饥荒联机版加载界面（`src/assets/images/wallpaper/`），开轮播、淡入淡出、8 秒；关掉背景视频；横幅标题、副标题、按钮（GitHub / 欢迎页 / RSS）；图片位置 |
+| `sidebarConfig.ts` | 关掉公告、音乐、动态三个侧边栏组件 |
+| `musicConfig.ts` | 导航栏和侧边栏都不显示音乐播放器 |
+
+## 三、我们自己加的文件（主题里没有，升级不会冲突）
+
+- `src/pages/welcome.astro`、`src/components/welcome/`、`src/scripts/welcome/`：欢迎页
+- `public/2016/`、`public/2017/`、`public/2018/`：旧 Hexo 网址的跳转页
+- `public/favicon.ico`、`src/assets/images/avatar-shiba.webp`、`src/assets/images/wallpaper/`
+- `esa.jsonc`：阿里云 ESA Pages 的构建配置
+- `scripts/verify-build.sh`：构建后的自动检查
+- `scripts/migrate-hexo.py`：当初从 Hexo 迁移用的一次性脚本
+- `src/content/spec/about.md`：关于页（内容替换）
+- `README.md`、`CUSTOMIZATIONS.md`（本文件）
+
+## 四、删掉的主题文件
+
+- `.github/` 下除了我们自己的 `workflows/build.yml` 以外的文件：主题仓库自己的 CI、Issue 模板、赞助配置、Dependabot
+- `vercel.json`、`wrangler.jsonc`：Vercel / Cloudflare 的部署配置，用不上
+- `AGENTS.md`、`CLAUDE.md`、`CONTRIBUTING.md`、`README.en.md`、`docs/`：主题仓库的说明文档
+- 主题自带的示例文章、动态、项目
+
+## 五、升级步骤
+
+```bash
+# 1. 拿到主题新版本
+git clone --depth 1 https://github.com/CuteLeaf/Firefly.git /tmp/firefly-new
+
+# 2. 开一个分支试升级，不影响线上
+git checkout -b theme-upgrade
+
+# 3. 看主题从基准版本到新版本改了哪些文件（在主题仓库里）
+cd /tmp/firefly-new && git fetch --unshallow
+git diff --stat cd920b035b475fe9a6cd3a88afb42cf9440bb8a9 HEAD
+```
+
+4. 对没出现在本清单"一""二"里的文件：直接用新版本覆盖。
+5. 对清单里的文件：用新版本覆盖后，按表格把我们的改动重新加回去。
+6. `package.json`、`pnpm-lock.yaml` 用新版本的，然后 `pnpm install`。
+7. `pnpm build`，确认 `bash scripts/verify-build.sh` 通过；`pnpm dev` 按上面"升级后怎么检查"一列逐项看一遍。
+8. 推送分支，GitHub Actions 通过后合并到 `master`，更新本文件开头的基准版本。
