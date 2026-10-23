@@ -1,7 +1,7 @@
 ---
 title: 从 Hexo 迁移到 Astro：图片找回、旧链接、欢迎页重写与双站点部署
 published: 2026-10-23T10:30:00+08:00
-updated: 2026-10-23T22:45:00+08:00
+updated: 2026-10-23T22:50:00+08:00
 description: 记录把 2016 年搭的 Hexo 博客迁移到 Astro 的全过程：从七牛找回图片、转换文章、保留旧链接、重写 SVG 动画欢迎页、搭建自动检查，部署到阿里云 ESA 和 GitHub Pages，以及从 Retypeset 换到 Firefly 主题，中间踩过的坑和背后的原理。
 tags:
   - astro
@@ -321,7 +321,7 @@ dig NS tracerzzz.cn @a.dns.cn +norec
 
 #### 根域名和 www
 
-`tracerzzz.cn`（根域名，主机记录 `@`）和 `www.tracerzzz.cn`（子域名，主机记录 `www`）在 DNS 里是两个独立的域名，解析、证书都要分别配置。博客的正式地址是不带 www 的那个，`www` 绑到同一个 Pages 项目上，以后再加一条 301 跳转规则跳到根域名。
+`tracerzzz.cn`（根域名，主机记录 `@`）和 `www.tracerzzz.cn`（子域名，主机记录 `www`）在 DNS 里是两个独立的域名，解析、证书都要分别配置。博客的正式地址是不带 www 的那个，`www` 也绑到同一个 Pages 项目上，两个地址打开的是同一个网站。本来打算再加一条 301 规则把 `www` 跳到根域名，后来觉得没必要：文章里的 canonical 链接和 RSS 写的都是根域名，搜索引擎会按根域名收录，`www` 能打开就够了。
 
 #### HTTPS
 
@@ -585,9 +585,9 @@ git add -A && git commit -m "新文章" && git push
 ## 十五、还没做的
 
 - 正式切换到 Obsidian 管理所有 Markdown。
-- `www` 跳转到根域名的规则。
 - 草稿慢慢整理发布。
-- 访问统计。
+
+原本还列了两项，后来决定不做：`www` 跳转到根域名（`www` 已经在 ESA 上绑定，能直接访问，canonical 指向根域名，不需要再跳）；访问统计（ESA 控制台自带基本的访问数据，够用了，不再额外接第三方统计脚本）。
 
 ## 回头看
 
