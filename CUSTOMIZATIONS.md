@@ -31,8 +31,8 @@
 | `navBarConfig.ts` | 导航只留：主页、文章（归档/分类/标签）、关于、GitHub |
 | `profileConfig.ts` | 头像（`src/assets/images/avatar-shiba.webp`）、名字、简介、GitHub 链接；删掉邮箱 |
 | `backgroundWallpaper.ts` | 横幅壁纸换成饥荒联机版加载界面（`src/assets/images/wallpaper/`），开轮播、淡入淡出、8 秒；关掉背景视频；横幅标题、副标题、按钮（GitHub / 欢迎页 / RSS）；图片位置 |
-| `sidebarConfig.ts` | 关掉公告、音乐、动态三个侧边栏组件 |
-| `musicConfig.ts` | 导航栏和侧边栏都不显示音乐播放器 |
+| `sidebarConfig.ts` | 关掉公告、动态两个侧边栏组件 |
+| `musicConfig.ts` | 音乐播放器改用 Meting 接口播放网易云歌单 `2059184801`，导航栏和侧边栏都显示 |
 
 ## 三、我们自己加的文件（主题里没有，升级不会冲突）
 
