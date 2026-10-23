@@ -96,7 +96,10 @@ const links = {
     <!-- 网易云音乐迷你播放器：鼠标移到音乐图标上时出现，移开后隐藏但继续播放 -->
     <div id="musicpop" aria-label="网易云音乐歌单">
       <div id="musicframe"></div>
-      <a class="music-open" href={links.music} target="_blank" rel="noopener">在网易云音乐中打开歌单 ↗</a>
+      <div class="music-foot">
+        <button id="musiclist" type="button" aria-expanded="false">播放列表 ▾</button>
+        <a class="music-open" href={links.music} target="_blank" rel="noopener">在网易云音乐中打开 ↗</a>
+      </div>
     </div>
     <noscript><a id="noscript" href={links.blog}>进入博客 →</a></noscript>
 
@@ -286,13 +289,46 @@ const links = {
     transition: opacity 0.2s, transform 0.2s;
   }
 
+  /* 播放器始终是带歌单的完整版，平时只露出顶部的播放条（当前歌曲、播放按钮、进度），
+     展开时露出下面的歌单。只改外框高度、不换播放器，切换时音乐不会中断 */
+  #musicframe {
+    height: 100px;
+    overflow: hidden;
+    border-radius: 6px;
+    transition: height 0.3s ease;
+  }
+
+  #musicpop.expanded #musicframe {
+    height: 450px;
+  }
+
   #musicframe iframe {
     display: block;
-    border-radius: 6px;
     width: 330px;
     max-width: calc(100vw - 40px);
-    height: 86px;
+    height: 450px;
     border: 0;
+  }
+
+  .music-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 4px 0;
+  }
+
+  #musiclist {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #bdbdbd;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  #musiclist:hover {
+    color: white;
   }
 
   .music-open {

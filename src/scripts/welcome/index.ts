@@ -137,21 +137,35 @@ function ensurePlayer() {
   const iframe = document.createElement('iframe')
   iframe.title = '网易云音乐歌单'
   iframe.allow = 'autoplay'
-  // 网易云官方外链播放器：type=0 歌单，auto=0 不自动播放，height=66 是只有播放条的紧凑样式
-  iframe.src = `https://music.163.com/outchain/player?type=0&id=${musicLink.dataset.playlist}&auto=0&height=66`
+  // 网易云官方外链播放器：type=0 歌单，auto=0 不自动播放，height=430 是带歌单的完整样式
+  iframe.src = `https://music.163.com/outchain/player?type=0&id=${musicLink.dataset.playlist}&auto=0&height=430`
   musicFrame.append(iframe)
 }
 
-// 播放器放在音乐图标正上方，超出屏幕时往里挪
+// 播放器放在音乐图标正上方（用 bottom 定位，展开歌单时向上长）；上方放不下就放到图标下方
+const EXPANDED_HEIGHT = 490 // 展开后整个弹窗的大致高度
 function placePopover() {
   const r = musicIcon.querySelector('.menulist')!.getBoundingClientRect()
   const w = musicPop.offsetWidth
-  const h = musicPop.offsetHeight
   const left = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8)
-  const top = r.top - h - 12 >= 8 ? r.top - h - 12 : r.bottom + 12
   musicPop.style.left = `${left}px`
-  musicPop.style.top = `${top}px`
+  if (r.top - 12 - EXPANDED_HEIGHT >= 8 || r.top > window.innerHeight / 2) {
+    musicPop.style.top = ''
+    musicPop.style.bottom = `${window.innerHeight - r.top + 12}px`
+  }
+  else {
+    musicPop.style.bottom = ''
+    musicPop.style.top = `${r.bottom + 12}px`
+  }
 }
+
+// 展开 / 收起歌单
+const listButton = document.querySelector<HTMLButtonElement>('#musiclist')!
+listButton.addEventListener('click', () => {
+  const expanded = musicPop.classList.toggle('expanded')
+  listButton.textContent = expanded ? '收起列表 ▴' : '播放列表 ▾'
+  listButton.setAttribute('aria-expanded', String(expanded))
+})
 
 function showMusic() {
   clearTimeout(hideTimer)
