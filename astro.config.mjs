@@ -117,6 +117,15 @@ export default defineConfig({
 	},
 
 	integrations: [
+		// 整页跳转（进出欢迎页、刷新）后接着播放音乐，见 src/scripts/music-resume.ts
+		{
+			name: "music-resume",
+			hooks: {
+				"astro:config:setup": ({ injectScript }) => {
+					injectScript("page", 'import "/src/scripts/music-resume.ts";');
+				},
+			},
+		},
 		swup({
 			theme: false,
 			animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector

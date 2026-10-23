@@ -123,27 +123,85 @@ button.addEventListener('keydown', (e) => {
 
 set('.gmenulist', { opacity: 0 })
 
-// ---------- 网易云音乐：鼠标移到音乐图标上出现迷你播放器，移开后隐藏、继续播放 ----------
+// ---------- 音乐：鼠标移到音乐图标上出现迷你播放器，移开后隐藏、继续播放 ----------
+// 播放用的是博客同一个播放器（window.__fireflyMusic），进出博客时由 music-resume.ts 接着播放
 const musicLink = document.querySelector<SVGAElement>('#musiclink')! // SVG 里的 <a>
 const musicIcon = document.querySelector<SVGGElement>('#rightbottom')!
 const musicPop = document.querySelector<HTMLElement>('#musicpop')!
-const musicFrame = document.querySelector<HTMLElement>('#musicframe')!
+const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
+const ui = {
+  cover: $<HTMLImageElement>('mp-cover'),
+  title: $('mp-title'),
+  artist: $('mp-artist'),
+  seek: $<HTMLInputElement>('mp-seek'),
+  time: $('mp-time'),
+  play: $<HTMLButtonElement>('mp-play'),
+  list: $<HTMLOListElement>('mp-list'),
+  listButton: $<HTMLButtonElement>('musiclist'),
+}
 let hideTimer = 0
+let seeking = false
 
-// 第一次需要时才加载播放器，之后一直保留（移除了音乐就停了）
-function ensurePlayer() {
-  if (musicFrame.firstChild)
+function render() {
+  const music = window.__fireflyMusic
+  if (!music)
     return
-  const iframe = document.createElement('iframe')
-  iframe.title = '网易云音乐歌单'
-  iframe.allow = 'autoplay'
-  // 网易云官方外链播放器：type=0 歌单，auto=0 不自动播放，height=430 是带歌单的完整样式
-  iframe.src = `https://music.163.com/outchain/player?type=0&id=${musicLink.dataset.playlist}&auto=0&height=430`
-  musicFrame.append(iframe)
+  const s = music.getState()
+  if (s.track) {
+    ui.title.textContent = s.track.name
+    ui.artist.textContent = s.track.artist
+    if (s.track.pic && ui.cover.getAttribute('src') !== s.track.pic)
+      ui.cover.src = s.track.pic
+  }
+  else if (s.initialized) {
+    ui.title.textContent = s.error ?? '歌单是空的'
+  }
+  ui.play.textContent = s.isPlaying ? '⏸' : '▶'
+  ui.play.setAttribute('aria-label', s.isPlaying ? '暂停' : '播放')
+  if (!seeking)
+    ui.seek.value = String(Math.round(s.progress * 10))
+  ui.time.textContent = s.duration ? `${s.currentTimeStr} / ${s.durationStr}` : '0:00'
+  ;[...ui.list.children].forEach((li, i) => li.classList.toggle('current', i === s.currentIndex))
 }
 
+function renderList() {
+  const s = window.__fireflyMusic?.getState()
+  if (!s)
+    return
+  ui.list.replaceChildren(...s.playlist.map((t, i) => {
+    const li = document.createElement('li')
+    li.textContent = `${t.name} `
+    const artist = document.createElement('span')
+    artist.textContent = `- ${t.artist}`
+    li.append(artist)
+    li.addEventListener('click', () => window.__fireflyMusic?.playTrackByIndex(i))
+    return li
+  }))
+  render()
+}
+
+for (const ev of ['fm:track', 'fm:play-state', 'fm:time', 'fm:error'])
+  window.addEventListener(ev, render)
+window.addEventListener('fm:init', renderList)
+if (window.__fireflyMusic?.getState().initialized)
+  renderList()
+
+ui.play.addEventListener('click', () => window.__fireflyMusic?.togglePlay())
+$('mp-prev').addEventListener('click', () => window.__fireflyMusic?.playPrev())
+$('mp-next').addEventListener('click', () => window.__fireflyMusic?.playNext())
+ui.seek.addEventListener('input', () => (seeking = true))
+ui.seek.addEventListener('change', () => {
+  seeking = false
+  window.__fireflyMusic?.seek(Number(ui.seek.value) / 1000)
+})
+ui.listButton.addEventListener('click', () => {
+  const expanded = musicPop.classList.toggle('expanded')
+  ui.listButton.textContent = expanded ? '收起列表 ▴' : '播放列表 ▾'
+  ui.listButton.setAttribute('aria-expanded', String(expanded))
+})
+
 // 播放器放在音乐图标正上方（用 bottom 定位，展开歌单时向上长）；上方放不下就放到图标下方
-const EXPANDED_HEIGHT = 490 // 展开后整个弹窗的大致高度
+const EXPANDED_HEIGHT = 340 // 展开歌单后弹窗的大致高度
 function placePopover() {
   const r = musicIcon.querySelector('.menulist')!.getBoundingClientRect()
   const w = musicPop.offsetWidth
@@ -159,17 +217,10 @@ function placePopover() {
   }
 }
 
-// 展开 / 收起歌单
-const listButton = document.querySelector<HTMLButtonElement>('#musiclist')!
-listButton.addEventListener('click', () => {
-  const expanded = musicPop.classList.toggle('expanded')
-  listButton.textContent = expanded ? '收起列表 ▴' : '播放列表 ▾'
-  listButton.setAttribute('aria-expanded', String(expanded))
-})
-
 function showMusic() {
   clearTimeout(hideTimer)
-  ensurePlayer()
+  void window.__fireflyMusic?.init() // 第一次显示时才去取歌单（已经初始化过就什么都不做）
+  render()
   placePopover()
   musicPop.classList.add('show')
 }

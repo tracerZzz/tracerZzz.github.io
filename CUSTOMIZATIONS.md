@@ -12,6 +12,7 @@
 | 文件 | 改了什么 | 为什么 | 升级后怎么检查 |
 |---|---|---|---|
 | `astro.config.mjs` | swup 配置里加了 `ignore`：目标是 `/welcome` 或当前在 `/welcome` 时不走 swup | 欢迎页是独立页面，没有 swup 的容器，过渡时会留下残影 | 首页点"欢迎页"、欢迎页点"博客"，确认是整页跳转、没有残影 |
+| `astro.config.mjs` | `integrations` 最前面加了一个 `music-resume` 小集成，把 `src/scripts/music-resume.ts` 注入到每个页面 | 整页跳转（进出欢迎页、刷新）后接着播放音乐 | 博客里放歌，点进欢迎页再回来，音乐从原来的位置接着放 |
 | `src/utils/layout-utils.ts` | `isHomePage` 把 `/2/`、`/3/`……也算首页 | 分页被当成普通页面，横幅变矮、壁纸取景和第一页不一样 | 打开 `/2/`，横幅和首页一样高、有大标题 |
 | `src/utils/navigation-utils.ts` | 同上（浏览器端的判断） | 同上 | 同上 |
 | `src/utils/swup-transitions.ts` | 同上（swup 切换页面时的判断） | 不改的话，直接打开 `/2/` 正常，从首页点过去又不一样 | 从首页点分页按钮到第二页，横幅不变 |
@@ -36,7 +37,8 @@
 
 ## 三、我们自己加的文件（主题里没有，升级不会冲突）
 
-- `src/pages/welcome.astro`、`src/components/welcome/`、`src/scripts/welcome/`：欢迎页
+- `src/pages/welcome.astro`、`src/components/welcome/`、`src/scripts/welcome/`：欢迎页（欢迎页用了主题的 `MusicManager` 组件，只是引用，没改它）
+- `src/scripts/music-resume.ts`：整页跳转后恢复音乐播放，只调用主题播放器公开的 `window.__fireflyMusic` 接口；主题升级后如果这个接口变了，要跟着改
 - `public/2016/`、`public/2017/`、`public/2018/`：旧 Hexo 网址的跳转页
 - `public/favicon.ico`、`src/assets/images/avatar-shiba.webp`、`src/assets/images/wallpaper/`
 - `esa.jsonc`：阿里云 ESA Pages 的构建配置

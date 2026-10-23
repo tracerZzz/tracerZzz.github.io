@@ -7,6 +7,7 @@ import Mandala from '@/components/welcome/Mandala.astro'
 import MusicIcon from '@/components/welcome/MusicIcon.astro'
 import NoteIcon from '@/components/welcome/NoteIcon.astro'
 import ProfileIcon from '@/components/welcome/ProfileIcon.astro'
+import MusicManager from '@/components/features/MusicManager.astro'
 import { siteConfig } from '@/config'
 
 const { title, description } = siteConfig
@@ -93,13 +94,29 @@ const links = {
         </div>
       </section>
     </div>
-    <!-- 网易云音乐迷你播放器：鼠标移到音乐图标上时出现，移开后隐藏但继续播放 -->
-    <div id="musicpop" aria-label="网易云音乐歌单">
-      <div id="musicframe"></div>
-      <div class="music-foot">
-        <button id="musiclist" type="button" aria-expanded="false">播放列表 ▾</button>
-        <a class="music-open" href={links.music} target="_blank" rel="noopener">在网易云音乐中打开 ↗</a>
+    <!-- 音乐迷你播放器：用博客同一个播放器（主题的 MusicManager），进出博客时接着播放。
+         鼠标移到音乐图标上时出现，移开后隐藏，音乐不停 -->
+    <MusicManager />
+    <div id="musicpop" aria-label="音乐播放器">
+      <div class="mp-head">
+        <img id="mp-cover" alt="" />
+        <div class="mp-meta">
+          <div id="mp-title">加载中…</div>
+          <div id="mp-artist"></div>
+        </div>
       </div>
+      <div class="mp-progress">
+        <input id="mp-seek" type="range" min="0" max="1000" value="0" aria-label="播放进度" />
+        <span id="mp-time">0:00</span>
+      </div>
+      <div class="mp-ctrl">
+        <button id="mp-prev" type="button" aria-label="上一首">⏮</button>
+        <button id="mp-play" type="button" aria-label="播放">▶</button>
+        <button id="mp-next" type="button" aria-label="下一首">⏭</button>
+        <button id="musiclist" type="button" aria-expanded="false">播放列表 ▾</button>
+      </div>
+      <ol id="mp-list"></ol>
+      <a class="music-open" href={links.music} target="_blank" rel="noopener">在网易云音乐中打开歌单 ↗</a>
     </div>
     <noscript><a id="noscript" href={links.blog}>进入博客 →</a></noscript>
 
@@ -267,7 +284,7 @@ const links = {
   #musicpop {
     position: fixed;
     z-index: 10;
-    padding: 6px 6px 2px;
+    padding: 10px 12px 4px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
     background: rgba(17, 17, 17, 0.45);
@@ -289,46 +306,129 @@ const links = {
     transition: opacity 0.2s, transform 0.2s;
   }
 
-  /* 播放器始终是带歌单的完整版，平时只露出顶部的播放条（当前歌曲、播放按钮、进度），
-     展开时露出下面的歌单。只改外框高度、不换播放器，切换时音乐不会中断 */
-  #musicframe {
-    height: 100px;
-    overflow: hidden;
-    border-radius: 6px;
-    transition: height 0.3s ease;
-  }
-
-  #musicpop.expanded #musicframe {
-    height: 450px;
-  }
-
-  #musicframe iframe {
-    display: block;
-    width: 330px;
-    max-width: calc(100vw - 40px);
-    height: 450px;
-    border: 0;
-  }
-
-  .music-foot {
+  .mp-head {
     display: flex;
-    justify-content: space-between;
+    gap: 10px;
     align-items: center;
-    padding: 2px 4px 0;
+    width: 260px;
+    text-align: left;
   }
 
-  #musiclist {
-    padding: 0;
+  #mp-cover {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    background: #333;
+    object-fit: cover;
+  }
+
+  #mp-cover:not([src]) {
+    visibility: hidden;
+  }
+
+  .mp-meta {
+    min-width: 0;
+  }
+
+  #mp-title,
+  #mp-artist {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  #mp-title {
+    color: #eee;
+    font-size: 14px;
+  }
+
+  #mp-artist {
+    margin-top: 2px;
+    color: #9a9a9a;
+    font-size: 12px;
+  }
+
+  .mp-progress {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  #mp-seek {
+    flex: 1;
+    height: 4px;
+    accent-color: #cb2727;
+  }
+
+  #mp-time {
+    color: #9a9a9a;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mp-ctrl {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 4px;
+  }
+
+  .mp-ctrl button {
+    padding: 2px 6px;
     border: 0;
     background: none;
-    color: #bdbdbd;
+    color: #d3d3d3;
     font: inherit;
-    font-size: 12px;
+    font-size: 15px;
     cursor: pointer;
   }
 
-  #musiclist:hover {
+  .mp-ctrl button:hover {
     color: white;
+  }
+
+  #musiclist {
+    margin-left: auto;
+    font-size: 12px !important;
+  }
+
+  #mp-list {
+    max-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    text-align: left;
+    transition: max-height 0.3s ease;
+  }
+
+  #musicpop.expanded #mp-list {
+    max-height: 210px;
+    margin-top: 4px;
+  }
+
+  #mp-list li {
+    padding: 5px 6px;
+    border-radius: 4px;
+    overflow: hidden;
+    color: #bdbdbd;
+    font-size: 12px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+
+  #mp-list li:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  #mp-list li.current {
+    color: white;
+  }
+
+  #mp-list li span {
+    color: #777;
   }
 
   .music-open {
