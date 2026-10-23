@@ -469,7 +469,7 @@ function shareUrl(): string {
 
 对应的改法，都在自己的文件里，没碰主题代码：
 
-- 欢迎页的 HTML 后面紧跟一小段内联脚本（`<script is:inline>`），解析到这里就立刻把 `#welcome-root` 移到 `<body>` 下，不等模块脚本。同时加了一条 CSS：`html:has(#welcome-root) #content-wrapper` 关掉入场动画和 `transform`，双保险。
+- `#welcome-root` 的第一个子元素是一小段内联脚本（`<script is:inline>`），浏览器一解析到这里，就用 `document.currentScript.parentElement` 找到欢迎页、移到 `<body>` 下，不等模块脚本。放在最前面而不是最后面，是因为欢迎页里有 300KB 的内联 SVG，放最后要等它们都解析完。元素移走后，浏览器后面解析出的内容照样会放进这个元素里。同时加了一条 CSS：`#content-wrapper:has(#welcome-root)` 关掉入场动画和 `transform`，双保险。这条规则只在欢迎页还在内容区里的那一瞬间生效；一开始写成了 `html:has(#welcome-root) #content-wrapper`，范围太大，欢迎页移走后也一直生效。
 - 黑色背景一开始就不透明，淡入只作用在里面的内容（`#wl-main`）上。
 - `controller.ts` 在 swup 的 `visit:start` 里判断：如果要去欢迎页，立刻盖上一层黑色遮罩，挡住下载等待和横幅收缩；欢迎页铺满窗口后撤掉，`visit:end` 时再检查一次，保证切换失败时遮罩不会一直留着。遮罩的样式直接写在元素上，因为在博客页面上还没加载欢迎页的样式表。
 

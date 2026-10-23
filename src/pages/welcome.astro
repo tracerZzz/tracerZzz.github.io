@@ -20,6 +20,15 @@ const links = {
 
 <MainGridLayout title="欢迎" description="À Çraftman 的欢迎页">
   <div id="welcome-root">
+    {/* 刷新 / 直接打开欢迎页时：浏览器一解析到这里，就把欢迎页移到 <body> 下铺满窗口。
+        放在最前面，不用等后面 300KB 的 SVG 解析完，也不等模块脚本（之后解析的内容照样进到欢迎页里）。
+        swup 切换时这段不会执行，由 controller.ts 负责 */}
+    <script is:inline>
+      (function () {
+        var root = document.currentScript && document.currentScript.parentElement
+        if (root && root.id === 'welcome-root' && root.parentElement !== document.body) document.body.append(root)
+      })()
+    </script>
     <div id="wl-main">
       <div id="wl-bg"></div>
       <section id="wl-top">
@@ -109,14 +118,6 @@ const links = {
     </div>
     <noscript><a id="wl-noscript" href={links.blog}>进入博客 →</a></noscript>
   </div>
-  {/* 刷新 / 直接打开欢迎页时：HTML 解析到这里就立刻把欢迎页移到 <body> 下铺满窗口，
-      不等后面的模块脚本，避免底下的博客页面先露出来。swup 切换时这段不会执行，由 controller.ts 负责 */}
-  <script is:inline>
-    (function () {
-      var root = document.getElementById('welcome-root')
-      if (root && root.parentElement !== document.body) document.body.append(root)
-    })()
-  </script>
 </MainGridLayout>
 
 <style is:global>
@@ -136,7 +137,7 @@ const links = {
 
   /* 欢迎页在的时候，关掉主题内容区的入场动画和位移：
      祖先元素有 transform 时 position: fixed 会相对它定位，盖不住整个窗口 */
-  html:has(#welcome-root) #content-wrapper {
+  #content-wrapper:has(#welcome-root) {
     animation: none;
     opacity: 1;
     transform: none;
