@@ -109,6 +109,14 @@ const links = {
     </div>
     <noscript><a id="wl-noscript" href={links.blog}>进入博客 →</a></noscript>
   </div>
+  {/* 刷新 / 直接打开欢迎页时：HTML 解析到这里就立刻把欢迎页移到 <body> 下铺满窗口，
+      不等后面的模块脚本，避免底下的博客页面先露出来。swup 切换时这段不会执行，由 controller.ts 负责 */}
+  <script is:inline>
+    (function () {
+      var root = document.getElementById('welcome-root')
+      if (root && root.parentElement !== document.body) document.body.append(root)
+    })()
+  </script>
 </MainGridLayout>
 
 <style is:global>
@@ -124,7 +132,14 @@ const links = {
     overflow: hidden;
     background: black;
     font-family: 'Times New Roman', 'Songti SC', 'SimSun', serif;
-    animation: wl-fade-in 0.3s ease;
+  }
+
+  /* 欢迎页在的时候，关掉主题内容区的入场动画和位移：
+     祖先元素有 transform 时 position: fixed 会相对它定位，盖不住整个窗口 */
+  html:has(#welcome-root) #content-wrapper {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   #welcome-root.leaving {
@@ -141,6 +156,8 @@ const links = {
   #wl-main {
     position: absolute;
     inset: 0;
+    /* 黑色背景一开始就不透明，盖住底下的博客；只让里面的内容淡入 */
+    animation: wl-fade-in 0.3s ease;
   }
 
   #wl-bg {

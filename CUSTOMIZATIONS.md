@@ -38,7 +38,7 @@
 
 ## 三、我们自己加的文件（主题里没有，升级不会冲突）
 
-- `src/pages/welcome.astro`、`src/components/welcome/`、`src/scripts/welcome/`：欢迎页。它套在主题的 `MainGridLayout` 里，用一个全屏图层盖住下面的博客页面；swup 切换时由 `controller.ts` 挂载 / 卸载。主题升级后如果 swup 容器的 ID（`#swup-container`）或 `MainGridLayout` 变了，要跟着检查
+- `src/pages/welcome.astro`、`src/components/welcome/`、`src/scripts/welcome/`：欢迎页。它套在主题的 `MainGridLayout` 里，用一个全屏图层盖住下面的博客页面；swup 切换时由 `controller.ts` 挂载 / 卸载。为了不让底下的博客一闪而过，样式里用到了主题的 `#content-wrapper`（欢迎页存在时关掉它的入场动画和 `transform`）。主题升级后如果 swup 容器的 ID（`#swup-container`）、`#content-wrapper` 或 `MainGridLayout` 变了，要跟着检查
 - `src/scripts/music-resume.ts`：整页跳转后恢复音乐播放，只调用主题播放器公开的 `window.__fireflyMusic` 接口；主题升级后如果这个接口变了，要跟着改
 - `public/2016/`、`public/2017/`、`public/2018/`：旧 Hexo 网址的跳转页
 - `public/favicon.ico`、`src/assets/images/avatar-shiba.webp`、`src/assets/images/wallpaper/`
