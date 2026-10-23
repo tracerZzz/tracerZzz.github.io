@@ -262,14 +262,14 @@ dig NS tracerzzz.cn @a.dns.cn +norec
 
 #### Pages 构建失败两次
 
-1. **`Unknown command: "build"`**：控制台里填了 `npm build`，npm 没有这个命令，应该是 `npm run build`。而且项目用的是 pnpm，安装和构建都应该用 pnpm。
+1. **`Unknown command: "build"`**：控制台里填了 `npm build`，npm 没有这个命令，应该是 `npm run build`。而且项目用的是 pnpm，安装和构建都应该用 pnpm。ESA 的构建环境里没有预装 pnpm，所以安装命令要写成 `npm install -g pnpm && pnpm install`：先用 npm 把 pnpm 装上，再用 pnpm 按锁文件安装依赖。
 2. **`Both assets and function js file are not found`**：构建其实成功了，但没告诉 ESA 发布哪个目录。
 
 为了不再依赖控制台设置，在仓库根目录加了 `esa.jsonc`：
 
 ```jsonc
 {
-  "installCommand": "pnpm install",
+  "installCommand": "npm install -g pnpm && pnpm install",
   "buildCommand": "pnpm build",
   "assets": {
     "directory": "./dist",
