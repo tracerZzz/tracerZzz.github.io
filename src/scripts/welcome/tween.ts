@@ -349,12 +349,14 @@ export class Timeline {
 }
 
 /** 描边绘制：先把路径设为未绘制状态，再加到时间线上逐渐画出（对应原来的 drawToTimeline） */
-export function drawToTimeline(tl: Timeline, target: string, opt: { duration: number, position: number, stroke: string, strokeWidth: number, fill: string, fillTo: string }) {
+export function drawToTimeline(tl: Timeline, target: string, opt: { duration: number, position: number, stroke: string, strokeWidth: number, fill?: string, fillTo?: string }) {
   const paths = document.querySelectorAll(`${target} path`)
   for (const p of paths) {
-    set(p, { draw: 0, fill: opt.fill, stroke: opt.stroke, strokeWidth: opt.strokeWidth, opacity: 1 })
+    set(p, { draw: 0, stroke: opt.stroke, strokeWidth: opt.strokeWidth, opacity: 1, ...(opt.fill ? { fill: opt.fill } : {}) })
   }
-  tl.to(paths, opt.duration, { draw: 1, fill: opt.fillTo }, opt.position)
+  // 用 fromTo 明确起点 draw: 0：开始画之前（包括每轮循环重新开始时）保持"还没画"的状态，
+  // 否则开始前会显示成已经画完，到点才突然清空再画
+  tl.fromTo(paths, opt.duration, { draw: 0 }, { draw: 1, ...(opt.fillTo ? { fill: opt.fillTo } : {}) }, opt.position)
 }
 
 /** 菜单图标的描边动画（对应原来的 jquery.drawsvg：每条路径间隔 stagger 毫秒依次画出） */

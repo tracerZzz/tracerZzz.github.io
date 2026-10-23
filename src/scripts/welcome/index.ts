@@ -18,8 +18,10 @@ export function mountWelcome(): () => void {
 
   tl.fromTo('#gflower', 9, { opacity: 0 }, { opacity: 1 }, 0)
   tl.to('#grightcircle', 2, { opacity: 1, scale: 1 }, 0)
-  tl.to('#gflower', 9, { fill: 'black' }, 0)
-  tl.to('#gflower', 9, { fill: '#c9b83c' }, 9)
+  tl.to('#gflower', 9, { fill: 'black', stroke: 'black' }, 0)
+  tl.to('#gflower', 9, { fill: '#c9b83c', stroke: 'black' }, 9)
+  // 花瓶：线条沿着轮廓慢慢"长"出来（原版的 drawToTimeline('#flower')，移植时漏掉了）
+  drawToTimeline(tl, '#flower', { duration: 38, position: 5, stroke: 'white', strokeWidth: 1 })
   // 中心花纹：白色描边逐渐画出，填充由黑变紫红
   drawToTimeline(tl, '#grightcenter', { duration: 7, position: 7, stroke: 'white', strokeWidth: 3, fill: 'black', fillTo: '#a31b66' })
   tl.fromTo('#grightcenter', 5, { opacity: 0 }, { opacity: 1 }, 10, ease.power3InOut)
