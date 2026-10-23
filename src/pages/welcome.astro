@@ -14,7 +14,8 @@ const links = {
   blog: '/',
   about: '/about/',
   github: 'https://github.com/tracerZzz',
-  music: 'https://music.163.com/#/user/home?id=91916193',
+  // 网易云公开歌单：点击时在页面内弹出外链播放器，不用登录；没有 JS 时直接打开歌单页
+  music: 'https://music.163.com/#/playlist?id=2059184801',
 }
 ---
 
@@ -74,7 +75,7 @@ const links = {
                 <ProfileIcon />
               </g>
             </a>
-            <a href={links.music} aria-label="网易云音乐">
+            <a id="musiclink" href={links.music} aria-label="网易云音乐歌单" data-playlist="2059184801">
               <g id="rightbottom" class="gmenulist" style="opacity:0">
                 <rect class="menulist" x="-250" y="-150" width="100" height="100" stroke="gray" stroke-width="2" rx="15" ry="15" />
                 <MusicIcon />
@@ -91,6 +92,14 @@ const links = {
           </svg>
         </div>
       </section>
+    </div>
+    <!-- 网易云音乐歌单播放器（点击音乐图标时弹出，关闭时移除以停止播放） -->
+    <div id="musicmodal" role="dialog" aria-modal="true" aria-label="网易云音乐歌单" hidden>
+      <div class="music-panel">
+        <button id="musicclose" type="button" aria-label="关闭">×</button>
+        <div id="musicframe"></div>
+        <a class="music-open" href={links.music} target="_blank" rel="noopener">在网易云音乐中打开 ↗</a>
+      </div>
     </div>
     <noscript><a id="noscript" href={links.blog}>进入博客 →</a></noscript>
 
@@ -252,6 +261,71 @@ const links = {
     border: 1px solid #d3d3d3;
     border-radius: 4px;
     background: #e6e6e6;
+  }
+
+  /* 网易云音乐播放器弹窗 */
+  #musicmodal {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  #musicmodal[hidden] {
+    display: none;
+  }
+
+  .music-panel {
+    position: relative;
+    padding: 12px 12px 8px;
+    border: 1px solid #cb2727;
+    border-radius: 12px;
+    background: #111;
+    font-family: system-ui, sans-serif;
+    text-align: center;
+  }
+
+  #musicframe iframe {
+    display: block;
+    width: 330px;
+    max-width: calc(100vw - 56px);
+    height: 450px;
+    border: 0;
+    border-radius: 6px;
+  }
+
+  #musicclose {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #cb2727;
+    border-radius: 50%;
+    background: #111;
+    color: #d3d3d3;
+    font-size: 18px;
+    line-height: 26px;
+    cursor: pointer;
+  }
+
+  #musicclose:hover {
+    color: white;
+  }
+
+  .music-open {
+    display: inline-block;
+    margin-top: 8px;
+    color: #9a9a9a;
+    font-size: 13px;
+    text-decoration: none;
+  }
+
+  .music-open:hover {
+    color: white;
   }
 
   #noscript {

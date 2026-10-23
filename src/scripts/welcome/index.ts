@@ -122,3 +122,42 @@ button.addEventListener('keydown', (e) => {
 })
 
 set('.gmenulist', { opacity: 0 })
+
+// ---------- 网易云音乐歌单：在页面内弹出外链播放器 ----------
+const musicLink = document.querySelector<SVGAElement>('#musiclink')! // SVG 里的 <a>
+const musicModal = document.querySelector<HTMLElement>('#musicmodal')!
+const musicFrame = document.querySelector<HTMLElement>('#musicframe')!
+
+function openMusic() {
+  const id = musicLink.dataset.playlist
+  const iframe = document.createElement('iframe')
+  iframe.title = '网易云音乐歌单'
+  iframe.allow = 'autoplay'
+  // 网易云官方外链播放器：type=0 表示歌单，auto=1 自动播放，height 是播放器内容高度
+  iframe.src = `https://music.163.com/outchain/player?type=0&id=${id}&auto=1&height=430`
+  musicFrame.replaceChildren(iframe)
+  musicModal.hidden = false
+  document.querySelector<HTMLButtonElement>('#musicclose')!.focus()
+}
+
+function closeMusic() {
+  musicModal.hidden = true
+  musicFrame.replaceChildren() // 移除播放器，音乐随之停止
+}
+
+musicLink.addEventListener('click', (e) => {
+  // 按住 Cmd/Ctrl 或中键点击时，照常在新标签页打开歌单
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)
+    return
+  e.preventDefault()
+  openMusic()
+})
+document.querySelector('#musicclose')!.addEventListener('click', closeMusic)
+musicModal.addEventListener('click', (e) => {
+  if (e.target === musicModal)
+    closeMusic()
+})
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !musicModal.hidden)
+    closeMusic()
+})
