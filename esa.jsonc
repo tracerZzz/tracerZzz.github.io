@@ -1,0 +1,11 @@
+// 阿里云 ESA Pages 的构建配置（这里的设置会覆盖控制台里填的值）
+{
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build",
+  "assets": {
+    // Astro 构建输出的网站目录
+    "directory": "./dist",
+    // 找不到的页面显示 dist/404.html
+    "notFoundStrategy": "404Page"
+  }
+}
