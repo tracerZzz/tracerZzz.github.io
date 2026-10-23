@@ -21,8 +21,16 @@ pnpm build     # 构建静态网站，输出到 dist/
 
 Typora 设置（偏好设置 → 图像）：
 
-- 插入图片时：复制图片到 `./${filename}.assets` 文件夹
-- 勾选“优先使用相对路径”
+- 插入图片时：选 Typora 自带的"复制图片到 ./${filename}.assets 文件夹"
+- 勾选"对本地位置的图片应用上述规则""对网络位置的图片应用上述规则""优先使用相对路径""为相对路径添加 ./"；"插入时自动转义图片 URL"不勾
+- 上传服务：无
+
+Obsidian 设置（库打开在 `src/content/posts`）：
+
+- 文件与链接：内部链接类型选"基于当前笔记的相对路径"，关闭"使用 [[Wiki 链接]]"，打开"自动更新内部链接"
+- 安装插件 Custom Attachment Location：附件位置 `./${noteFileName}.assets`，文件名 `${date:YYYYMMDDHHmmssSSS}`
+
+详细说明见文章《从 Hexo 迁移到 Astro》的"写作工具配置"一节。
 
 文章开头的信息：
 
