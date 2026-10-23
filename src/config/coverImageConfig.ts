@@ -19,7 +19,9 @@ import type { CoverImageConfig } from "../types/coverImageConfig";
  */
 export const coverImageConfig: CoverImageConfig = {
 	// 是否在文章详情页显示封面图
-	enableInPost: true,
+	// 详情页不显示封面：我们的封面都取自正文里的图，开着会在文章顶部重复显示同一张。
+	// 封面照样用于文章列表、分享海报和搜索引擎预览图
+	enableInPost: false,
 
 	// 是否使用标题和元数据叠加在封面上的布局
 	enableInPostOverlay: false,
