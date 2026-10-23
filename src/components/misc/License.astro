@@ -54,7 +54,7 @@ const licenseIcon = licenseName
   <div class="transition font-bold text-black/75 dark:text-white/75">
     {title}
   </div>
-  <a href={postUrl} class="link text-(--primary) break-all">
+  <a href={postUrl} class="link text-(--primary) break-all" data-post-link={sourceLink ? undefined : ""}>
     {postUrl}
   </a>
   <div class="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-2">
@@ -91,3 +91,24 @@ const licenseIcon = licenseName
     class="transition text-[15rem] absolute pointer-events-none right-6 top-1/2 -translate-y-1/2 text-black/5 dark:text-white/5"
   />
 </div>
+
+<script>
+	// 本文链接用当前访问的域名（主站 tracerzzz.cn 或备用站 tracerzzz.github.io）
+	function useCurrentOrigin() {
+		for (const a of document.querySelectorAll<HTMLAnchorElement>("a[data-post-link]")) {
+			const u = new URL(a.getAttribute("href") || "", window.location.href);
+			if (u.origin === window.location.origin) continue;
+			const fixed = window.location.origin + u.pathname + u.search + u.hash;
+			a.href = fixed;
+			a.textContent = decodeURIComponent(fixed);
+		}
+	}
+	useCurrentOrigin();
+	// 站内切换页面（swup）后再处理一次
+	document.addEventListener("swup:page:view", useCurrentOrigin);
+	type SwupLike = { hooks: { on: (name: string, fn: () => void) => void } };
+	const hookSwup = () =>
+		(window as unknown as { swup?: SwupLike }).swup?.hooks.on("page:view", useCurrentOrigin);
+	if ((window as unknown as { swup?: SwupLike }).swup) hookSwup();
+	else document.addEventListener("swup:enable", hookSwup, { once: true });
+</script>

@@ -220,7 +220,7 @@ async function generatePoster() {
 		const logoBox = 22 * scale; // 站点 Logo 尺寸
 
 		// 1. Prepare resources
-		const qrCodeUrl = await QRCode.toDataURL(url, {
+		const qrCodeUrl = await QRCode.toDataURL(shareUrl(), {
 			margin: 1,
 			width: 100 * scale,
 			color: { dark: "#000000", light: "#ffffff" },
@@ -599,9 +599,17 @@ function closeModal() {
 	showModal = false;
 }
 
+// 分享链接用当前访问的域名：同一份网站部署在 tracerzzz.cn 和 tracerzzz.github.io，
+// 构建时写进页面的是主域名，在备用站上分享时要换成备用站自己的域名
+function shareUrl(): string {
+	if (typeof window === "undefined") return url;
+	const u = new URL(url, window.location.href);
+	return window.location.origin + u.pathname + u.search + u.hash;
+}
+
 let copied = false;
 function copyLink() {
-	navigator.clipboard.writeText(url);
+	navigator.clipboard.writeText(shareUrl());
 	copied = true;
 	setTimeout(() => {
 		copied = false;
