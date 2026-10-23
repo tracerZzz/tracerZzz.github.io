@@ -79,15 +79,12 @@ export const siteConfig: SiteConfig = {
 
 	// Favicon 配置
 	// 如果启用了OpenGraph图片功能，数组中需要包含png格式的favicon图标
+	// 丁字尺 logo：favicon.ico（16/32/48，给不支持 SVG 图标的浏览器）、favicon.svg（任意大小都清晰）、
+	// apple-touch-icon.png（180×180，苹果设备"添加到主屏幕"用，不带圆角，系统会自己裁圆角）
 	favicon: [
-		{
-			// 图标文件路径
-			src: "/favicon.ico",
-			// 可选，指定主题 'light' | 'dark'
-			// theme: "light",
-			// 可选，图标大小
-			// sizes: "32x32",
-		},
+		{ src: "/favicon.ico", sizes: "48x48" },
+		{ src: "/favicon.svg", sizes: "any" },
+		{ src: "/apple-touch-icon.png", sizes: "180x180" },
 	],
 
 	// 导航栏配置
@@ -102,8 +99,9 @@ export const siteConfig: SiteConfig = {
 		// 例如: { type: "image", value: "assets/images/logo.png", valueDark: "assets/images/logo-dark.png", alt: "Logo" }
 		// 使用 Astro 图标库时不需要设置 valueDark，图标会自动跟随主题亮暗色切换
 		logo: {
-			type: "icon",
-			value: "material-symbols:handyman",
+			type: "image",
+			value: "/favicon.svg",
+			alt: "À Çraftman",
 		},
 		// 导航栏标题
 		title: "À Çraftman",

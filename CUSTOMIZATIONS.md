@@ -28,7 +28,7 @@
 
 | 文件 | 改了什么 |
 |---|---|
-| `siteConfig.ts` | 站点标题、副标题、网址、描述、关键词、favicon、导航栏 logo 和标题、建站日期；关掉友链、留言、动态、项目、相册、书签、打赏页面；关掉 OG 图片生成 |
+| `siteConfig.ts` | 站点标题、副标题、网址、描述、关键词、favicon（丁字尺：`favicon.ico`、`favicon.svg`、`apple-touch-icon.png`）、导航栏 logo（改为 `image` 类型，用 `/favicon.svg`）和标题、建站日期；关掉友链、留言、动态、项目、相册、书签、打赏页面；关掉 OG 图片生成 |
 | `navBarConfig.ts` | 导航只留：主页、文章（归档/分类/标签）、关于、GitHub |
 | `profileConfig.ts` | 头像（`src/assets/images/avatar-shiba.webp`）、名字、简介、GitHub 链接；删掉邮箱 |
 | `backgroundWallpaper.ts` | 横幅壁纸换成饥荒联机版加载界面（`src/assets/images/wallpaper/`），开轮播、淡入淡出、8 秒；关掉背景视频；横幅标题、副标题、按钮（GitHub / 欢迎页 / RSS）；图片位置 |
@@ -42,7 +42,7 @@
 - `src/pages/welcome.astro`、`src/components/welcome/`、`src/scripts/welcome/`：欢迎页。它套在主题的 `MainGridLayout` 里，用一个全屏图层盖住下面的博客页面；swup 切换时由 `controller.ts` 挂载 / 卸载。为了不让底下的博客一闪而过，样式里用到了主题的 `#content-wrapper`（欢迎页存在时关掉它的入场动画和 `transform`）。主题升级后如果 swup 容器的 ID（`#swup-container`）、`#content-wrapper` 或 `MainGridLayout` 变了，要跟着检查
 - `src/scripts/music-resume.ts`：整页跳转后恢复音乐播放，只调用主题播放器公开的 `window.__fireflyMusic` 接口；主题升级后如果这个接口变了，要跟着改
 - `public/2016/`、`public/2017/`、`public/2018/`：旧 Hexo 网址的跳转页
-- `public/favicon.ico`、`src/assets/images/avatar-shiba.webp`、`src/assets/images/wallpaper/`
+- `public/favicon.ico`、`public/favicon.svg`、`public/apple-touch-icon.png`（丁字尺图标）、`src/assets/images/avatar-shiba.webp`、`src/assets/images/wallpaper/`
 - `esa.jsonc`：阿里云 ESA Pages 的构建配置
 - `scripts/verify-build.sh`：构建后的自动检查
 - `scripts/migrate-hexo.py`：当初从 Hexo 迁移用的一次性脚本
