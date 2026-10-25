@@ -154,6 +154,8 @@ export default defineConfig({
 			// 滚动相关配置优化
 			resolveUrl: (url) => url,
 			animateHistoryBrowsing: false,
+			// PDF、压缩包等文件不走 swup：swup 会把它们当成网页去加载，地址栏变了页面却没换，浏览器返回也会错乱
+			ignore: [/\.(pdf|zip|rar|7z|gz|tar|docx?|xlsx?|pptx?|mp3|mp4|webm)(?:[?#]|$)/i],
 			skipPopStateHandling: (event) => {
 				// 跳过锚点链接的处理，让浏览器原生处理
 				return event.state?.url?.includes("#");
