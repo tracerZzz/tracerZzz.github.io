@@ -4,7 +4,7 @@ published: 2018-06-17T16:37:11+08:00
 description: docker在实际的开发、学习以及线上部署中已经频繁被用到，这里总结了一些常用的docker命令，以及docker使用过程中遇到的一些坑，记录爬坑的过程。以便再次遇到相同问题的时候查阅
 tags:
   - docker
-draft: false
+draft: true
 category: Docker
 image: ./docker命令.assets/2018061615291325776173.png
 slug: docker-commands

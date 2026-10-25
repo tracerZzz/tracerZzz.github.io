@@ -4,7 +4,7 @@ published: 2018-01-14T20:19:07+08:00
 description: 由于工作中使用命令终端的频率非常之高，自定义一些自己常用的命令来简化操作，将大大提高自己的效率，人生苦短，我爱偷懒。这里列举了一个例子来说明如何自定义命令来进行复杂的命令行操作。接下来的工作中，也会不断的来添加这些自定义命令来简化流程。
 tags:
   - iterm2
-draft: false
+draft: true
 category: 工具
 slug: iterm2-custom-commands
 ---

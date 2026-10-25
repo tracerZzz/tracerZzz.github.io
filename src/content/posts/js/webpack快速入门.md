@@ -4,7 +4,7 @@ published: 2018-03-08T14:16:07+08:00
 description: webpack已经成为前端工程构建的重要工具，这篇文章将主要总结webpack相关的概念，基本配置，以及经常用的几个插件，使你能够快速上手构建自己的webpack工程化项目；
 tags:
   - webpack
-draft: false
+draft: true
 category: JavaScript
 image: ./webpack快速入门.assets/20180308152048985612690.png
 slug: webpack-quick-start

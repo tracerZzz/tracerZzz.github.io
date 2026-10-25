@@ -5,7 +5,7 @@ description: Webbench能测试处在相同硬件上，不同服务的性能以�
 tags:
   - webbench
   - nginx
-draft: false
+draft: true
 category: 架构
 image: ./压力测试工具webbench安装与使用.assets/20180616152907932443010.png
 slug: webbench-nginx-stress-test

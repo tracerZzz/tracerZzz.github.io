@@ -4,7 +4,7 @@ published: 2018-01-17T13:54:11+08:00
 description: 如何编写高质量的js代码，这篇文章记录了js编码过程中常见的一些问题，包括变量提升，变量命名，函数闭包等。遵从这些优秀的编程规则，有利于使我们的代码，更好维护，更优雅，避免未知的错误发生。
 tags:
   - js
-draft: false
+draft: true
 category: JavaScript
 slug: high-quality-javascript-basics
 ---

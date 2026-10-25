@@ -4,7 +4,7 @@ published: 2018-04-15T16:37:11+08:00
 description: 在开发过程中git已经是必不可少的版本控制以及团队合作工具，在使用git的过程中，熟知git常用命令是每位开发者的基本技能，这里就记录了使用git过程中经常用到的一些命令，其中包含了代码回滚，分支合并，git配置管理，远程源管理等；
 tags:
   - git
-draft: false
+draft: true
 category: Git
 image: ./git常用命令.assets/20180514152628079993927.png
 slug: git-commands

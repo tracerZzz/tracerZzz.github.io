@@ -11,6 +11,8 @@ image: ./使用scrapy和scrapy-splash爬取网易云音乐歌单.assets/20180515
 slug: scrapy-netease-music-playlist
 ---
 
+> 这是 2018 年写的旧文。网易云音乐的页面和接口此后变化很大，文中的选择器和地址大概率已经失效，这里只作为 Scrapy + Splash 抓取动态页面的思路参考。
+
 ![2018051515263513332302.png](./使用scrapy和scrapy-splash爬取网易云音乐歌单.assets/2018051515263513332302.png)
 
 ### 创建项目

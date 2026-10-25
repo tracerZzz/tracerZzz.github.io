@@ -1,7 +1,8 @@
 ---
-title: 通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统
+title: Keepalived + MySQL 双主：搭建 Zabbix Proxy 高可用集群
 published: 2018-03-23T12:37:11+08:00
-description: 本文记录了通过keepalived搭建zabbix双主模式（主主同步）高可用系统的详细步骤，其中会介绍zabbix的安装，mysql的双主互备，keepalived的配置，也会记录过程中遇到的问题以及对应的解决方法;
+updated: 2026-10-25T15:30:00+08:00
+description: 2018 年在中国电信 CDN 部门为上千台机器的监控系统搭建的 Zabbix Proxy 高可用方案：MySQL 双主互备加 Keepalived 虚拟 IP 漂移。包含完整搭建步骤、故障切换演练方法，以及双主模式里容易踩的坑和现在回头看的改进方向。
 tags:
   - keepalived
   - zabbix
@@ -11,6 +12,37 @@ category: 架构
 image: ./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180316152118561067778.png
 slug: keepalived-mysql-dual-master
 ---
+
+### 背景
+
+2018 年我在中国电信云计算 CDN 部门，参与搭建天翼高清业务的监控系统，覆盖内容中心和各省中心约一千台机器。监控采用 Zabbix 的 server - proxy - agent 三层架构：agent 把数据上报给所在区域的 proxy，proxy 汇总后再发给 server。
+
+proxy 是中间这一层的单点：一台 proxy 挂了，它下面整片机器的监控数据就断了。所以需要给 proxy 做高可用，方案是：
+
+- 两台机器各跑一套 zabbix-proxy 和 MySQL；
+- 两个 MySQL **双主互备**，任意一台写入的数据都会同步到另一台；
+- Keepalived 维护一个**虚拟 IP（VIP）**，agent 和 server 都只认这个 VIP，主机故障时 VIP 自动漂移到备机。
+
+```mermaid
+flowchart TB
+    agents["Zabbix Agent（约千台机器）"] --> vip(("VIP 192.168.10.100"))
+    vip -.->|正常时| A
+    vip -.->|故障切换后| B
+    subgraph A["节点 A（master）"]
+        pa["zabbix-proxy"] --> ma[("MySQL")]
+        ka["keepalived"]
+    end
+    subgraph B["节点 B（slave）"]
+        pb["zabbix-proxy"] --> mb[("MySQL")]
+        kb["keepalived"]
+    end
+    ma <-->|双主互相同步 binlog| mb
+    ka <-->|VRRP 心跳| kb
+    pa --> server["Zabbix Server"]
+    pb --> server
+```
+
+软件版本：CentOS 7、MySQL 5.7、Zabbix 3.4（2018 年）。下面先讲两个核心组件，再按步骤搭建。
 
 ### Mysql双主模式
 
@@ -32,9 +64,7 @@ mysql双主模式也叫做主主同步或者双主互备，即两台数据库ser
 
 #### 机器准备（centos7系统）
 
-两台server:`183.57.148.5`（**master**）,`183.57.148.7`(**slave**)
-
-一个vip:`183.57.148.23`
+两台 server：`192.168.10.11`（**master**）、`192.168.10.12`（**slave**），一个 VIP：`192.168.10.100`（文中 IP 和密码均为示例）
 
 > 由于基于vrrp协议，两台server和vip必须处于同一网段
 
@@ -55,14 +85,14 @@ vim /var/log/mysql.log
 
 找到下面一行
 
-`[Note] A temporary password is generated for root@localhost: i8nk2b*1z,bS`
+`[Note] A temporary password is generated for root@localhost: <临时密码>`
 
-`i8nk2b*1z,bS`是初始化的密码，再次使用`mysql -h localhost -u root -p`登陆
+`<临时密码>`是初始化的密码，再次使用`mysql -h localhost -u root -p`登陆
 
 使用以下命令重置root密码
 
 ```Sql
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass111!';		
+ALTER USER 'root'@'localhost' IDENTIFIED BY '<your-password>';		
 ```
 
 登陆slave执行相同的操作
@@ -85,7 +115,7 @@ create database zabbix_proxy character set utf8 collate utf8_bin;
 为zabbix_proxy库创建zabbix用户并授权，然后退出（避免使用root登陆特定的数据库）
 
 ```Sql
-grant all privileges on zabbix_proxy.* to zabbix@localhost identified by 'Zabbix@ctzcdn4321!';  
+grant all privileges on zabbix_proxy.* to zabbix@localhost identified by '<zabbix-db-password>';  
 quit
 ```
 
@@ -133,7 +163,7 @@ slave_skip_errors = 1062,1032,1060  #同步时跳过的错误编号，1062，103
 重新登陆mysql,为slave机器授予replication权限
 
 ```sql
-grant replication slave on *.* to 'repl_user'@'183.57.148.7' identified by 'MyNewPass111!';
+grant replication slave on *.* to 'repl_user'@'192.168.10.12' identified by '<your-password>';
 ```
 
 查看master当前binlog状态信息
@@ -144,10 +174,10 @@ show master status;
 
 ![20180319152143914570938.png](./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180319152143914570938.png)
 
-在slaver机器上指定数据库master为183.57.148.5，并指定日志文件名字和位置，这样slaver就知道从哪里开始进行同步了。
+在slaver机器上指定数据库master为192.168.10.11，并指定日志文件名字和位置，这样slaver就知道从哪里开始进行同步了。
 
 ```Sh
-change master to master_host='183.57.148.5',master_user='repl_user',master_password='MyNewPass111!',master_log_file='mysql-bin.000001',  master_log_pos=154;
+change master to master_host='192.168.10.11',master_user='repl_user',master_password='<your-password>',master_log_file='mysql-bin.000001',  master_log_pos=154;
 ```
 
 开启slaver
@@ -159,15 +189,15 @@ start slave
 接下来在slave机器上进行同样的操作，给maser授予复制权限，然后查看slave机器的binlog状态信息（每个机器的不一定一样，这里和maser的状态一样）
 
 ```
-grant replication slave on *.* to 'repl_user'@'183.57.148.4' identified by 'MyNewPass111!';
+grant replication slave on *.* to 'repl_user'@'192.168.10.11' identified by '<your-password>';
 ```
 
 ![20180319152143914570938.png](./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180319152143914570938.png)
 
-在master机器上指定数据库master为183.57.148.7,并指定日志文件名字和位置
+在master机器上指定数据库master为192.168.10.12,并指定日志文件名字和位置
 
 ```Sql
-change master to master_host='183.57.148.7',master_user='repl_user',master_password='MyNewPass111!',master_log_file='mysql-bin.000001',  master_log_pos=154;
+change master to master_host='192.168.10.12',master_user='repl_user',master_password='<your-password>',master_log_file='mysql-bin.000001',  master_log_pos=154;
 ```
 
 开启slaver
@@ -259,7 +289,7 @@ vrrp_instance HA_1 {
         auth_pass 1111   #两台一致
     }
     virtual_ipaddress {
-    	183.57.148.23  #vip
+    	192.168.10.100  #vip
     }
 	
     track_script {
@@ -302,7 +332,7 @@ sudo firewall-cmd --direct --permanent --add-rule ipv4 filter OUT 0 --out-interf
 sudo firewall-cmd --reload
 ```
 
-### 启动zabbi-proxy
+### 启动 zabbix-proxy
 
 #### 修改配置文件
 
@@ -310,8 +340,8 @@ sudo firewall-cmd --reload
 
 ```
 ProxyMode=1
-Server=124.126.126.143
-Hostname=183.57.148.23  #vip
+Server=<zabbix-server-ip>
+Hostname=192.168.10.100  #vip
 LogFile=/var/log/zabbix/zabbix_proxy.log
 LogFileSize=0
 PidFile=/var/run/zabbix/zabbix_proxy.pid
@@ -319,7 +349,7 @@ SocketDir=/var/run/zabbix
 DBHost=localhost
 DBName=zabbix_proxy
 DBUser=zabbix
-DBPassword=Zabbix@ctzcdn4321!
+DBPassword=<zabbix-db-password>
 HeartbeatFrequency=10
 ConfigFrequency=60
 DataSenderFrequency=5
@@ -361,7 +391,7 @@ systemctl enable mysqld
 2.通过连接vip的mysql，
 
 ```
-msyql -h 183.57.148.23 -uroot -p
+msyql -h 192.168.10.100 -uroot -p
 show variables like "%hostname%";
 ```
 
@@ -369,27 +399,32 @@ show variables like "%hostname%";
 
 
 
-### **MySQL出现同步延迟解决优化方法**
+### 故障切换演练
 
- 
+搭完一定要演练，不然真出故障时才发现切不过去。演练按这个顺序做：
 
-1.主从复制的从库太多导致复制延迟
-优化：建议从库数量3-5个为宜（具体看自己硬件配置）
+1. **确认初始状态**：在两台机器上执行 `ip a`，VIP 应该只绑在 master 上；通过 VIP 连 MySQL，执行 `show variables like 'hostname'`，确认连的是 master。
+2. **停 master 的 MySQL**：`systemctl stop mysqld`。检测脚本返回非 0，master 权重降到 100，低于 slave 的 110，VIP 应在几秒内漂到 slave。再通过 VIP 查一次 hostname 确认。
+3. **验证数据不丢**：切换前后各写几条测试数据，恢复 master 后检查两边的 `show slave status`，两个线程都是 Yes，数据一致。
+4. **验证不抢占**：恢复 master 后，因为配置了 `nopreempt`，VIP 应该留在 slave 上，不会来回漂。
+5. **模拟网络隔离**：用防火墙临时屏蔽 VRRP 报文，观察是否出现两台机器同时持有 VIP（脑裂），确认告警能发出来。
 
-2.从库硬件比主库硬件差
-优化：提升硬件性能
+### 双主模式容易踩的坑
 
-3.慢SQL语句过多
-优化：SQL语句执行时间太长，需要优化SQL语句（需要联系DBA开发共同商讨优化语句）
+**1. 两边同时写，主键冲突。** 用 `auto-increment-increment = 2` 和不同的 `auto-increment-offset`，让一台只生成奇数主键、另一台只生成偶数主键。但这只解决自增主键，唯一索引冲突、同一行被两边同时修改的问题依然存在。所以双主虽然两边都能写，**实际使用时最好只往 VIP 所在的那台写**，另一台只做热备。
 
-4.主从复制的设计问题
-优化：主从复制单线程，可以通过多线程IO方案解决；另外MySQL5.6.3支持多线程IO复制。
+**2. `slave_skip_errors` 会掩盖数据不一致。** 文中为了让同步不中断，跳过了 1062（主键重复）、1032（记录不存在）等错误。这在监控数据这种可以容忍少量丢失的场景能用，但它的代价是两边数据悄悄地不一致，**业务数据库千万不要这样配**。
 
-5.主从库之间的网络延迟
-优化：尽量链路短，提升端口带宽
+**3. 检测脚本太简单。** `killall -0` 只能判断进程还在，进程活着但 MySQL 卡死、复制线程已经停了，它都发现不了。更稳妥的检测是真正登录执行一条查询，并检查 `Slave_IO_Running` 和 `Slave_SQL_Running`。
 
-6.主库读写压力大
-优化：前端加buffer和缓存。主从延迟不同步（延迟的多少，只要不影响业务就没事）
+**4. 脑裂。** 两台机器之间 VRRP 报文不通时，都会认为对方挂了，各自绑上 VIP。防火墙放行 VRRP（协议号 112，组播地址 224.0.0.18）是最基本的；两边都设为 `BACKUP` 加 `nopreempt` 可以减少来回抢占；条件允许的话再加一条独立的心跳链路。
 
-7、业务设计缺陷导致延迟影响业务
-优化：从库没有数据改读主库
+**5. 复制延迟。** 主库写入压力大、大事务、单线程回放都会导致从库跟不上。切换发生时，延迟期间的数据就可能丢失。MySQL 5.7 起可以开启基于组提交的并行复制（`slave_parallel_type = LOGICAL_CLOCK`）缓解。
+
+### 现在回头看
+
+这套方案在 2018 年是很典型的做法，简单、好理解。放到现在，我会做几处改进：
+
+- 用 **GTID** 代替手动指定 binlog 文件名和位置，切换和重建复制都简单很多；
+- 更严格的一致性需求，考虑 **MySQL Group Replication** 或者 Orchestrator 这类自动故障转移工具，而不是靠 Keepalived 判断数据库状态；
+- 如果在云上，直接用托管数据库的高可用版本，大多数云环境也不支持 VRRP 组播漂移 VIP。
