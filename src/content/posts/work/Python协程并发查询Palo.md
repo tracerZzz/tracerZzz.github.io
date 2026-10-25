@@ -221,7 +221,35 @@ results = asyncio.run(main(queries))
 
 最后的结构是在原来多线程的基础上，**每个线程里跑一个事件循环**，用协程并发发查询。
 
-任务是按域名拆的：把全部域名列表按下标切成几段，每个线程负责一段域名；线程里再把这批域名要查的各项指标、各张表的查询，用协程并发跑完：
+任务是按域名拆的：把全部域名列表按下标切成几段，每个线程负责一段域名；线程里再把这批域名要查的各项指标、各张表的查询，用协程并发跑完。整体结构如下：
+
+```mermaid
+flowchart TD
+    D["全部域名列表"] --> S{"按下标切成 N 段"}
+
+    subgraph T1["线程 1"]
+        direction TB
+        L1["事件循环"] --> C1["协程 × 50<br/>aiomysql 连接池 + 信号量"]
+    end
+    subgraph T2["线程 2"]
+        direction TB
+        L2["事件循环"] --> C2["协程 × 50<br/>aiomysql 连接池 + 信号量"]
+    end
+    subgraph TN["线程 N"]
+        direction TB
+        LN["事件循环"] --> CN["协程 × 50<br/>aiomysql 连接池 + 信号量"]
+    end
+
+    S -- "第 1 段域名" --> T1
+    S -- "第 2 段域名" --> T2
+    S -- "第 N 段域名" --> TN
+
+    T1 & T2 & TN -- "并发查询" --> P[("Palo")]
+    P -- "查询结果" --> R["汇总各线程结果"]
+    R --> W["写入成本表，看板 T+1 产出"]
+```
+
+对应的代码：
 
 ```python
 from concurrent.futures import ThreadPoolExecutor
