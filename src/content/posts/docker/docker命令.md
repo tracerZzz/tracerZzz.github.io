@@ -18,7 +18,7 @@ docker在实际的开发、学习以及线上部署中已经频繁被用到，�
 
 ### 删除所有容器
 
-```shell
+```bash
 docker rm $(docker ps -aq)
 ```
 
@@ -34,19 +34,19 @@ docker rm $(docker ps -aq)
 
 例如：
 
-```shell
+```bash
 docker ps -f "status=created"
 ```
 
 ### 快速删除退出的容器
 
-```shell
+```bash
 docker rm $(docker ps -q -f "status=exited")
 ```
 
 ### nginx镜像的日志
 
-```
+```dockerfile
 # forward request and error logs to docker log collector
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \
 	&& ln -sf /dev/stderr /var/log/nginx/error.log
@@ -56,13 +56,13 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
 
 在宿主机可以使用docker logs命令查看日志
 
-```shell
+```bash
 docker logs -f containerId
 ```
 
 #### 镜像占用硬件状态
 
-```shell
+```bash
 docker stats containerId
 ```
 

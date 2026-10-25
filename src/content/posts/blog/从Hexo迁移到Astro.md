@@ -37,7 +37,7 @@ slug: hexo-to-astro-migration
 
 图片目录沿用 Typora 的习惯：每篇文章旁边一个同名的 `.assets` 文件夹，文章里用相对路径引用。
 
-```
+```text
 src/content/posts/git/
 ├── git常用命令.md
 └── git常用命令.assets/
@@ -268,7 +268,7 @@ Custom domain 留空，用默认地址 `tracerzzz.github.io`。因为一个域�
 
 #### 三方的关系
 
-```
+```text
 访客输入 tracerzzz.cn
   │
   ▼
@@ -620,7 +620,7 @@ Astro 更新很勤：大版本大约一年一次（会有不兼容的改动）�
 
 ## 十四、现在的发布流程
 
-```
+```text
 本地写文章 → git push 到 master
                  │
                  ├──► GitHub Actions：构建 → 检查 → 发布到 tracerzzz.github.io

@@ -17,7 +17,7 @@ slug: scrapy-netease-music-playlist
 
 ### 创建项目
 
-```Shell
+```bash
 scrapy startproject music163Scrapy
 cd music163Scrapy
 scrapy genspider Music163 163.com
@@ -51,7 +51,7 @@ class Scrapymusic163Item(scrapy.Item):
 
 ### Music163Spider
 
-```Python
+```python
 class Music163Spider(scrapy.Spider):
 
     name = "music163"
@@ -115,19 +115,19 @@ if __name__ == '__main__':
 
 #### docker 部署scrapy-splash
 
-```
-docer pull  scrapinghub/splash
+```bash
+docker pull scrapinghub/splash
 
 docker run -p  8050:8050 scrapinghub/splash
 ```
 
 #### 配置
 
-```
+```bash
 vim setting.py
 ```
 
-```Python
+```python
 #SPLASH SERVER
 SPLASH_URL = 'http://127.0.0.1:8050/render.json'
 
@@ -155,7 +155,7 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 
 依赖[scrapy-mongodb](https://github.com/sebdah/scrapy-mongodb)
 
-```Python
+```python
 ITEM_PIPELINES = {
   "scrapy_mongodb.MongoDBPipeline":900
 }
@@ -175,7 +175,7 @@ MONGODB_SEPARATE_COLLECTIONS = True
 
 共爬取了15万左右的歌单。下面是播放次数最多的五个歌单
 
-```Json
+```js
 /* 1 */
 {
     "_id" : ObjectId("5aea7a036d5b76bf8d42659d"),

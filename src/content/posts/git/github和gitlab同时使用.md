@@ -20,7 +20,7 @@ slug: gitlab-and-github
 
 现在推荐用 ed25519 算法，比 RSA 更短更安全：
 
-```shell
+```bash
 ssh-keygen -t ed25519 -C "个人邮箱" -f ~/.ssh/id_ed25519_github
 ssh-keygen -t ed25519 -C "公司邮箱" -f ~/.ssh/id_ed25519_gitlab
 ```
@@ -29,7 +29,7 @@ ssh-keygen -t ed25519 -C "公司邮箱" -f ~/.ssh/id_ed25519_gitlab
 
 ## 二、用 ~/.ssh/config 按域名选择密钥
 
-```
+```ssh-config
 # 个人 GitHub
 Host github.com
     HostName github.com
@@ -49,7 +49,7 @@ Host gitlab.example.com
 
 配好后验证：
 
-```shell
+```bash
 ssh -T git@github.com
 ssh -T git@gitlab.example.com
 ```
@@ -84,7 +84,7 @@ ssh -T git@gitlab.example.com
 
 当时推送到公司 GitLab 时出现过这个报错：
 
-```
+```text
 ssh_exchange_identification: read: Connection reset by peer
 fatal: Could not read from remote repository.
 ```

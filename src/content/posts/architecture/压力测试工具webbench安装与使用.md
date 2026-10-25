@@ -17,7 +17,7 @@ Webbench能测试处在相同硬件上，不同服务的性能以及不同硬件
 
 ### 安装
 
-```shell
+```bash
 wget http://www.ha97.com/code/webbench-1.5.tar.gz
 tar zxvf webbench-1.5.tar.gz
 cd webbench-1.5
@@ -26,7 +26,7 @@ make && make install
 
 #### 报错
 
-```
+```text
 cc -Wall -ggdb -W -O   -c -o webbench.o webbench.c
 webbench.c: 在函数‘alarm_handler’中:
 webbench.c:77:31: 警告：未使用的参数‘signal’ [-Wunused-parameter]
@@ -44,13 +44,13 @@ make: *** [install] 错误 1
 
 这是因为缺少ctags,需要安装依赖，centos7环境下直接yum安装；
 
-```shell
+```bash
 yum install ctags
 ```
 
 再次执行make && make install,依旧报错
 
-```
+```text
 ctags *.c
 install -s webbench /usr/local/bin
 install -m 644 webbench.1 /usr/local/man/man1
@@ -62,7 +62,7 @@ make: *** [install] 错误 1
 
 得到安装成功结果
 
-```
+```text
 install -s webbench /usr/local/bin
 install -m 644 webbench.1 /usr/local/man/man1
 install -d /usr/local/share/doc/webbench
@@ -74,7 +74,7 @@ install -m 644 debian/changelog /usr/local/share/doc/webbench
 
 命令提示
 
-```
+```text
 webbench
 webbench [option]... URL
   -f|--force               Don't wait for reply from server.
@@ -95,7 +95,7 @@ webbench [option]... URL
 
 #### 示例
 
-```
+```bash
 webbench -c 500 -t 10 localhost/test
 ```
 

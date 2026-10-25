@@ -48,7 +48,7 @@ window.result
 
 经验法则是始终使用var声明变量
 
-```Js
+```js
 function sum(x, y) {
    var result = x + y;
    return result;
@@ -59,7 +59,7 @@ function sum(x, y) {
 
 另一个创建隐式全局变量的反例就是使用任务链进行部分var声明。下面的片段中，`a`是本地变量但是`b`确实全局变量，这可能不是你希望发生的：
 
-```Js
+```js
 function foo() {
    var a = b = 0;
    // ...
@@ -74,7 +74,7 @@ window.b //发现b其实为全局变量，倒霉
 
 **先准备好声明变量，再使用链分配是比较好的做法**
 
-```Js
+```js
 function foo() {
    var a, b;
    // ... a = b = 0; // 两个均局部变量
@@ -90,7 +90,7 @@ function foo() {
 
 **这表明，在技术上，隐式全局变量并不是真正的全局变量，但它们是全局对象的属性。属性是可以通过`delete`操作符删除的，而变量是不能的：**
 
-```Js
+```js
 // 定义三个全局变量
 var global_var = 1;
 global_novar = 2; // 反面教材
@@ -120,7 +120,7 @@ typeof global_fromfunc; // "global_fromfunc is not defined"
 
 单var形式长得就像下面这个样子：
 
-```Js
+```js
 function func() {
    var a = 1,
        b = 2,
@@ -136,7 +136,7 @@ function func() {
 
 ### 变量提升（Hoisting）
 
-```Js
+```js
 myname = "global"; // 全局变量,不建议这么写，应该写成 var name = "global"
 function func() {
     alert(myname); // "undefined"
@@ -150,7 +150,7 @@ func();
 
 上边的代码可以拆分了来理解
 
-```Js
+```js
 myname = "global"; // 全局变量,不建议这么写，应该写成 var name = "global"
 function func() {
     var myname=undefined
@@ -169,7 +169,7 @@ myname变量的声明得到了提升，而在声明的时候是没有被赋值�
 
 `HTMLCollections`指的是DOM方法返回的对象，例如：
 
-```Js
+```js
 document.getElementsByName()
 document.getElementsByClassName()
 document.getElementsByTagName()
@@ -192,7 +192,7 @@ for (var i = 0; i < myarray.length; i++) {
 
 这就是为什么当你循环获取值时，缓存数组(或集合)的长度是比较好的形式，正如下面代码显示的：
 
-```Js
+```js
 for (var i = 0, max = myarray.length; i < max; i++) {
    // 使用myarray[i]做点什么
 }
@@ -223,7 +223,7 @@ for (var i = 0, max = myarray.length; i < max; i++) {
 
 如果这三个条件得到满足，你可以给原型进行自定义的添加，形式如下：
 
-```Js
+```js
 if (typeof Object.protoype.myMethod !== "function") {
    Object.protoype.myMethod = function () {
       // 实现...
@@ -233,7 +233,7 @@ if (typeof Object.protoype.myMethod !== "function") {
 
 ### switch模式(switch Pattern)
 
-```Js
+```js
 var inspect_me = 0,
     result = '';
 switch (inspect_me) {
@@ -260,7 +260,7 @@ default:
 
 JavaScript的变量在比较的时候会隐式类型转换。这就是为什么一些诸如：false == 0 或 “” == 0 返回的结果是true。为避免引起混乱的隐含类型转换，在你比较值和表达式类型的时候始终使用===和!==操作符。
 
-```Js
+```js
 var zero = 0;
 if (zero === false) {
    // 不执行，因为zero为0, 而不是false

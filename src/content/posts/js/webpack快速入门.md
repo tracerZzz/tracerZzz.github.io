@@ -51,14 +51,14 @@ loader 用于对模块的源代码进行转换。loader 可以使你在 `import`
 
 ##### 示例
 
-```Shell
+```bash
 npm install --save-dev css-loader
 npm install --save-dev ts-loader
 ```
 
 然后指示 webpack 对每个 `.css` 使用 [`css-loader`](https://doc.webpack-china.org/loaders/css-loader)，以及对所有 `.ts` 文件使用 [`ts-loader`](https://github.com/TypeStrong/ts-loader)：
 
-```Js
+```js
 module.exports = {
   module: {
     rules: [
@@ -96,7 +96,7 @@ module.exports = {
 
 resolve里面有一个alias的配置项目，能够让开发者指定一些模块的引用路径。对一些经常要被import或者require的库
 
-```Js
+```js
 resolve: {
     alias: {
       'vue$': 'vue/dist/vue.esm.js',
@@ -106,7 +106,7 @@ resolve: {
 
 在引入模块的时候可以这样写
 
-```Js
+```js
 import Chart from '@/components/Charts/keyboard'
 ```
 
@@ -123,7 +123,7 @@ import Chart from '@/components/Charts/keyboard'
 
 #### base配置
 
-```Js
+```js
 const path = require('path');
 const os = require('os');
 const webpack = require('webpack');
@@ -242,7 +242,7 @@ module.exports = {
 
 #### product配置
 
-```Js
+```js
   new cleanWebpackPlugin(['dist/*'], {
             root: path.resolve(__dirname, '../')
         }),

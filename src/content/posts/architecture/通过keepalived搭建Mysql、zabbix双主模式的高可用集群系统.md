@@ -74,14 +74,14 @@ mysql双主模式也叫做主主同步或者双主互备，即两台数据库ser
 
 首先登陆master
 
-```Sh
+```bash
 yum install mysql-server
 mysql -h localhost -u root -p
 ```
 
 发现需要输入密码,于是去日志文件里找默认密码
 
-```Sh
+```bash
 vim /var/log/mysql.log
 ```
 
@@ -93,7 +93,7 @@ vim /var/log/mysql.log
 
 使用以下命令重置root密码
 
-```Sql
+```sql
 ALTER USER 'root'@'localhost' IDENTIFIED BY '<your-password>';		
 ```
 
@@ -101,13 +101,13 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY '<your-password>';
 
 ### 下载zabbix-proxy，导入表结构
 
-```shell
+```bash
 yum install zabbix-proxy-mysql
 ```
 
 然后根据[zabbix文档](https://www.zabbix.com/documentation/3.4/manual/installation/install_from_packages/rhel_centos)提示创建数据库表结构
 
-```Sh
+```bash
 mysql -h localhost -u root -p
 ```
 
@@ -116,14 +116,14 @@ create database zabbix_proxy character set utf8 collate utf8_bin;
 ```
 为zabbix_proxy库创建zabbix用户并授权，然后退出（避免使用root登陆特定的数据库）
 
-```Sql
+```sql
 grant all privileges on zabbix_proxy.* to zabbix@localhost identified by '<zabbix-db-password>';  
 quit
 ```
 
 执行zabbix_proxy自带的sql生成zabbix_proxy表结构
 
-```Sh
+```bash
 zcat /usr/share/doc/zabbix-proxy-mysql-3.4.1/schema.sql.gz |mysql -uroot -p zabbix_proxy
 ```
 
@@ -133,13 +133,13 @@ zcat /usr/share/doc/zabbix-proxy-mysql-3.4.1/schema.sql.gz |mysql -uroot -p zabb
 
 ### 修改/etc/my.cnf文件，配置同步
 
-```Sh
+```bash
 vim /etc/my.cnf
 ```
 
 在[mysqld]下追加
 
-```Mysql
+```ini
 log-bin = mysql-bin    #开启binlog日志
 
 binlog_format = mixed  #基于混合模式,mysql Replication 有三种模式，基于语句，基于行，基于混合模式
@@ -170,7 +170,7 @@ grant replication slave on *.* to 'repl_user'@'192.168.10.12' identified by '<yo
 
 查看master当前binlog状态信息
 
-```
+```sql
 show master status;
 ```
 
@@ -178,19 +178,19 @@ show master status;
 
 在slaver机器上指定数据库master为192.168.10.11，并指定日志文件名字和位置，这样slaver就知道从哪里开始进行同步了。
 
-```Sh
+```sql
 change master to master_host='192.168.10.11',master_user='repl_user',master_password='<your-password>',master_log_file='mysql-bin.000001',  master_log_pos=154;
 ```
 
 开启slaver
 
-```Sql
+```sql
 start slave
 ```
 
 接下来在slave机器上进行同样的操作，给maser授予复制权限，然后查看slave机器的binlog状态信息（每个机器的不一定一样，这里和maser的状态一样）
 
-```
+```sql
 grant replication slave on *.* to 'repl_user'@'192.168.10.11' identified by '<your-password>';
 ```
 
@@ -198,13 +198,13 @@ grant replication slave on *.* to 'repl_user'@'192.168.10.11' identified by '<yo
 
 在master机器上指定数据库master为192.168.10.12,并指定日志文件名字和位置
 
-```Sql
+```sql
 change master to master_host='192.168.10.12',master_user='repl_user',master_password='<your-password>',master_log_file='mysql-bin.000001',  master_log_pos=154;
 ```
 
 开启slaver
 
-```Sql
+```sql
 start slave
 ```
 
@@ -212,7 +212,7 @@ start slave
 
 开启3306端口
 
-```Sh
+```bash
 sudo firewall-cmd --zone=public --add-port=3306/tcp --permanent
 
 sudo firewall-cmd --reload
@@ -222,7 +222,7 @@ sudo firewall-cmd --reload
 
 在两台机器上分别查看slave状态
 
-```Sql
+```sql
 show slave status\G;
 ```
 
@@ -232,7 +232,7 @@ show slave status\G;
 
 都为yes后创建一个表，测试同步数据
 
-```Sql
+```sql
 DROP TABLE IF EXISTS `test`;
 CREATE TABLE `test` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -258,11 +258,11 @@ select * from test;
 
 在配置之前先查看本地机器的网卡设置，使用`ip a`命令,得知当前ip使用的是网卡**eth0**,这个要根据`ip a`命令执行结果得到。**网卡名称将在接下来的keepalived配置文件和防火墙设置中用到**。
 
-```
+```bash
 vim /etc/keepalived/keepalived.conf
 ```
 
-```
+```nginx
 ! Configuration File for keepalived
 global_defs {
    router_id mysql-1
@@ -306,9 +306,9 @@ vrrp_sync_group的应用场景为：如果路由有2个网段，一个内网，�
 
 vrrp_instance配置了检测脚本，vip等信息。两台机器的配置基本一致，除了priority参数（master设置为100，slave设置为90）。当master机器keepalivde启动后，将会去执行check.sh，每两秒执行一次，如果执行结果返回零，将在初始权重上加上20，maste的权重将达到120，同理，slave的权重为110（90+20）。这时，vip将漂移到master机器上。如果master上的check.sh执行结果返回1,那么master的权重将不会加20，那么master的权重为100，小于110，此时vip将漂移到slave机器上。keepalived就是这样根据权重的大小进行vip漂移的。另外，需要注意的是，**检测脚本的权重一定要大于两台机器的初始权重**，20>(100-90),因为只有这样，检测脚本检测到服务异常时才能影响到权重的总和。
 
-vrrp_script配置了检测脚本和被检测的服务的权重，以及检测频率等。这里的关键是check.sh的实现。这个脚本这里主要是用来检测mysql是否正常服务，而正常服务的检测可以很简单，也可以很复杂，比如简单的检测msyqld服务是否正常启动，复杂的可以用msyl命令登陆数据库，执行sql语句，查看mysql的状态，进行判断。这里我们只是简单的检测了mysqld服务是否正常启动；
+vrrp_script配置了检测脚本和被检测的服务的权重，以及检测频率等。这里的关键是check.sh的实现。这个脚本这里主要是用来检测mysql是否正常服务，而正常服务的检测可以很简单，也可以很复杂，比如简单的检测mysqld服务是否正常启动，复杂的可以用mysql命令登陆数据库，执行sql语句，查看mysql的状态，进行判断。这里我们只是简单的检测了mysqld服务是否正常启动；
 
-```Sh
+```bash
 #!/bin/bash
 killall -0 mysqld zabbix_proxy
 ```
@@ -319,7 +319,7 @@ killall -0 mysqld zabbix_proxy
 
 `sudo vim check.sh`
 
-```sh
+```bash
 #!/bin/bash
 sudo killall -0 mysqld zabbix-proxy
 ```
@@ -328,7 +328,7 @@ sudo killall -0 mysqld zabbix-proxy
 
 keepalived需要执行下面两条语句，对防火墙进行操作，才能确保两台keepalived能够进行选举,如果没有进行防火墙设置，则会出现两台机器都绑定了vip（脑裂）,原因就是两台机器没法进行通信，无法找到真正的master;
 
-```Sh
+```bash
 sudo firewall-cmd --direct --permanent --add-rule ipv4 filter INPUT 0 --in-interface eth0 --destination 224.0.0.18 --protocol vrrp -j ACCEPT
 sudo firewall-cmd --direct --permanent --add-rule ipv4 filter OUT 0 --out-interface eth0 --destination 224.0.0.18 --protocol vrrp -j ACCEPT
 sudo firewall-cmd --reload
@@ -340,7 +340,7 @@ sudo firewall-cmd --reload
 
 `vim /etc/zabbix/zabbix_proxy.conf`
 
-```
+```ini
 ProxyMode=1
 Server=<zabbix-server-ip>
 Hostname=192.168.10.100  #vip
@@ -371,7 +371,7 @@ Timeout=30
 
 ```
 
-```sh
+```bash
 #开启端口
 sudo firewall-cmd --zone=public --add-port=10051/tcp --permanent
 sudo firewall-cmd --reload
@@ -381,7 +381,7 @@ systemctl start zabbix-proxy
 
 #### 开机自动启动
 
-```
+```bash
 systemctl enable zabbix-proxy
 systemctl enable mysqld
 ```
@@ -392,8 +392,11 @@ systemctl enable mysqld
 
 2.通过连接vip的mysql，
 
+```bash
+mysql -h 192.168.10.100 -uroot -p
 ```
-msyql -h 192.168.10.100 -uroot -p
+
+```sql
 show variables like "%hostname%";
 ```
 

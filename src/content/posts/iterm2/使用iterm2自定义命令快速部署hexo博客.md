@@ -11,7 +11,7 @@ slug: iterm2-custom-commands
 
 环境：iTerm+zsh
 
-```Bash
+```bash
 echo "alias hexod='hexo clean && hexo g && hexo d'" >> ~/.bash_profile
 source ~/.bash_profile
 ```
@@ -20,7 +20,7 @@ source ~/.bash_profile
 
 在hexo博客目录下执行以下命令
 
-```Shell
+```bash
 hexod
 ```
 
@@ -32,7 +32,7 @@ hexod
 
 如果你的默认shell是`bash` ，那么把
 
-```
+```bash
 . ~/.bash_profile
 ```
 

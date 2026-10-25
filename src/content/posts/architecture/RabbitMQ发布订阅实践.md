@@ -153,7 +153,7 @@ for customer in customers:
 
 ## 五、本地快速启动
 
-```shell
+```bash
 # 带管理界面的镜像，15672 是 Web 管理端口
 docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
 

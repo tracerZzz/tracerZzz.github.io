@@ -613,7 +613,7 @@ public  class TreeNode {
 
 ##### 递归实现
 
-```Java
+```java
   public static int getNodeNumRec(TreeNode root) {  
     if (root == null) {  
         return 0;  
@@ -625,7 +625,7 @@ public  class TreeNode {
 
 #####  迭代实现
 
-```Java
+```java
   public static int getNodeNum(TreeNode root) {  
     if(root == null){  
         return 0;  
@@ -674,7 +674,7 @@ public  class TreeNode {
 
 基本思想同LevelOrderTraversal，还是用一个Queue  
 
-```Java
+```java
   public static int getDepth(TreeNode root) {  
   if(root == null){  
       return 0;  
@@ -743,7 +743,7 @@ public  class TreeNode {
 
 ##### 前序迭代解法
 
-```Java
+```java
  /** 
  *  **前序遍历迭代解法**：用一个辅助stack，总是把右孩子放进栈 
  *  http://www.youtube.com/watch?v=uPTCbdHSFg4 
