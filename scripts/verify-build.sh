@@ -31,10 +31,10 @@ done
 
 # old Hexo URLs redirect to existing pages
 for r in $(find public -mindepth 4 -name index.html -path 'public/20*'); do
-  target=$(sed -n 's/.*url=\(\/posts\/[^"]*\)".*/\1/p' "$r" | head -1)
+  target=$(sed -n 's/.*url=\(\/[^"]*\)".*/\1/p' "$r" | head -1)
   d="dist${r#public}"
   [ -f "$d" ] || err "redirect page not in dist: $d"
-  [ -f "dist${target}index.html" ] || err "redirect target missing: $target (from $r)"
+  [ -n "$target" ] && [ -f "dist${target}index.html" ] || err "redirect target missing: $target (from $r)"
 done
 
 # welcome page: markup, menu links and bundled script
