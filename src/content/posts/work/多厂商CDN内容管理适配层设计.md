@@ -202,38 +202,54 @@ flowchart LR
     subgraph redis["Redis：厂商 A 的配额计数"]
         K1["quota:A:账号:当前窗口<br/>已用 / 上限<br/>TTL = 窗口剩余时间"]
     end
-    W1 -->|Lua 原子扣减| K1
-    W2 -->|Lua 原子扣减| K1
-    W3 -->|Lua 原子扣减| K1
+    W1 -->|INCRBY 原子计数| K1
+    W2 -->|INCRBY 原子计数| K1
+    W3 -->|INCRBY 原子计数| K1
     K1 -->|未超限：放行| A["调用厂商 A 接口"]
-    K1 -->|超限：回退计数| D["子任务延迟重投"]
+    K1 -->|超限：DECRBY 回退| D["子任务延迟重投"]
     K1 -.->|窗口结束，键过期| N["计数自动清零"]
 ```
 
-检查和扣减必须是原子的，否则两台服务器同时读到「还剩 100」，都去提交 100 个，就超了。用一段 Lua 脚本让 Redis 一次完成：
+检查和扣减必须避免竞争：如果先 `GET` 读出已用量、判断够不够、再写回去，两台服务器可能同时读到「还剩 100」，都去提交 100 个，就超了。
+
+解决办法是利用 **`INCRBY` 本身是原子的**：不先读再写，而是**先加、再判断**。Redis 单线程执行命令，多台服务并发 `INCRBY` 时，每台拿到的都是自己加完之后的结果，不会读到同一个值。加完发现超过上限，就 `DECRBY` 把这次的数量退回去，本次不放行。
+
+下发服务用 Go（go-redis）直接操作 Redis，大致是这样（示例）：
 
 ```go
-// KEYS[1] 计数键；ARGV[1] 本次数量；ARGV[2] 窗口秒数；ARGV[3] 上限
-var acquireScript = redis.NewScript(`
-local cur = redis.call('INCRBY', KEYS[1], ARGV[1])
-if cur == tonumber(ARGV[1]) then
-    redis.call('EXPIRE', KEYS[1], ARGV[2])  -- 窗口内第一次使用时设置过期
-end
-if cur > tonumber(ARGV[3]) then
-    redis.call('DECRBY', KEYS[1], ARGV[1])  -- 超限则回退，本次不放行
-    return 0
-end
-return 1
-`)
+// 申请本次要提交的 n 个 URL 的配额；limit 为该厂商在窗口内的上限
+func acquire(ctx context.Context, rdb *redis.Client, vendor, account string,
+	n, limit int64, window time.Duration) (bool, error) {
 
-func acquire(ctx context.Context, vendor, account string, n, limit int, window time.Duration) (bool, error) {
-	key := fmt.Sprintf("quota:%s:%s:%d", vendor, account, time.Now().Unix()/int64(window.Seconds()))
-	ok, err := acquireScript.Run(ctx, rdb, []string{key}, n, int(window.Seconds()), limit).Int()
-	return ok == 1, err
+	// 键名带上窗口编号，窗口切换时自然换成新键
+	key := fmt.Sprintf("quota:%s:%s:%d", vendor, account,
+		time.Now().Unix()/int64(window.Seconds()))
+
+	// 窗口内第一次使用时创建键并设置过期时间；键已存在则什么都不做
+	if err := rdb.SetNX(ctx, key, 0, window).Err(); err != nil {
+		return false, err
+	}
+
+	// 原子地加上本次数量，返回加完之后的总量
+	used, err := rdb.IncrBy(ctx, key, n).Result()
+	if err != nil {
+		return false, err
+	}
+	if used > limit {
+		// 超限：把本次数量退回去，不放行
+		rdb.DecrBy(ctx, key, n)
+		return false, nil
+	}
+	return true, nil
 }
 ```
 
-键名里带上时间窗口的编号，可以让窗口和厂商的计算方式对齐，比如每日配额按自然日重置，而不是从第一次调用开始往后算 24 小时。
+这里有两个细节：
+
+- **先 `SET NX` 带过期时间，再 `INCRBY`**。如果反过来先 `INCRBY` 再单独 `EXPIRE`，进程恰好在两步之间挂掉，这个键就永远不过期，配额会一直被占着。`SET NX` 一条命令同时完成「创建」和「设置过期」，就没有这个问题。
+- **超限时的回退是安全的**。在 `INCRBY` 和 `DECRBY` 之间，其他服务可能短暂看到一个偏高的已用量，结果只是它们这一次也被拒绝、稍后重试，不会导致超发。宁可偶尔少放行，也不能多放行。
+
+如果逻辑更复杂，比如要同时扣减「每秒频率」和「每日总量」两个计数器，并且要求两者同时成功或同时失败，就可以把这些步骤写成一段 Lua 脚本，在 Go 里用 `EVAL` 调用，由 Redis 一次性执行完。单个计数器的场景，直接用命令就足够了。
 
 拿不到配额的子任务不会被丢弃，而是稍后重新投递，等下一个窗口再提交。
 
@@ -283,6 +299,6 @@ flowchart TB
 1. **适配器模式**把厂商差异收敛到一处，核心流程和厂商无关；
 2. **多云层先定义自己的统一限制**，再负责翻译成每家厂商的规矩，客户不需要了解厂商细节；
 3. **消息队列削峰**，把突发请求转成平稳的下发节奏；
-4. **Redis 共享配额**，用过期时间对齐厂商的限额窗口，用 Lua 保证原子性；
+4. **Redis 共享配额**，用过期时间对齐厂商的限额窗口，用 INCRBY 的原子性保证多台服务不超发；
 5. **失败隔离**，一家厂商失败不影响其他厂商，结果透明地展示给客户；
 6. **稳定的抽象让 AI 辅助真正落地**，接入新厂商从「写一个系统」变成「填一个模板」。
