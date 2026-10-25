@@ -13,6 +13,8 @@ image: ./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系�
 slug: keepalived-mysql-dual-master
 ---
 
+> **关于这篇文章**：搭建步骤写于 2018 年，基于当时的 CentOS 7、MySQL 5.7、Zabbix 3.4。2026 年 10 月补充了背景和架构图，新增了「故障切换演练」「双主模式容易踩的坑」「现在回头看」三节，并对文中的 IP 和密码做了脱敏处理。
+
 ### 背景
 
 2018 年我在中国电信云计算 CDN 部门，参与搭建天翼高清业务的监控系统，覆盖内容中心和各省中心约一千台机器。监控采用 Zabbix 的 server - proxy - agent 三层架构：agent 把数据上报给所在区域的 proxy，proxy 汇总后再发给 server。

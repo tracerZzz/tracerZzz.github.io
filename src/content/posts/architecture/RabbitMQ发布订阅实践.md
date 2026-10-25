@@ -1,7 +1,6 @@
 ---
 title: RabbitMQ 发布订阅：CDN 配置下发和分布式账单任务的实践
-published: 2019-01-01T00:00:00+08:00
-updated: 2026-10-25T16:00:00+08:00
+published: 2026-10-25T16:00:00+08:00
 description: 我在中国电信用 RabbitMQ 做过 CDN 配置下发系统，在百度用 RabbitMQ + Celery 做过分布式账单任务。这篇整理 RabbitMQ 的核心概念、交换机类型怎么选，以及消息不丢、不重、不乱序的几种做法。
 tags:
   - rabbitmq
