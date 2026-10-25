@@ -19,6 +19,7 @@
 | `src/components/misc/SharePoster.svelte` | 加了 `shareUrl()`，复制链接和海报二维码用当前访问的域名 | 网站同时部署在 tracerzzz.cn 和 tracerzzz.github.io，构建时写进页面的是主域名 | 在 tracerzzz.github.io 的文章页点分享 → 复制链接，粘贴出来是 github.io 的地址 |
 | `src/components/misc/License.astro` | "本文链接"加了 `data-post-link` 和一段脚本，换成当前域名 | 同上 | 在 tracerzzz.github.io 的文章底部，本文链接是 github.io 的地址 |
 | `scripts/new-post.js` | 生成的 `slug` 只取文件名（不带文件夹）；日期带时分和 `+08:00` | 带文件夹的 slug 会让网址多一层目录；没时区会被当成 UTC | `pnpm new-post git/测试`，看生成的开头 |
+| `src/components/layout/PostMeta.astro` | 文章页的发布日期前加「发布于」、更新日期前加「更新于」（复用主题自带的 `I18nKey.publishedAt` / `updatedAt` 文案）；列表卡片传了 `hideUpdateDate`，不显示文字 | 原来两个日期只有图标，并排放着分不清哪个是发布、哪个是更新 | 打开一篇有 `updated` 的文章（如 Nginx 那篇），标题下显示「发布于 … 更新于 …」；首页卡片只有日期 |
 
 `src/content.config.ts` 曾经改过（用 `abbrlink` 当文章 ID），后来改用 Astro 自带的 `slug` 字段，已经恢复成主题原版。
 

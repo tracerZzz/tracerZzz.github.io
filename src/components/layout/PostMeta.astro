@@ -90,6 +90,7 @@ const visibleTags =
           />
         </div>
         <span class="text-50 text-sm font-medium">
+          {!hideUpdateDate && `${i18n(I18nKey.publishedAt)} `}
           {formatDateToYYYYMMDD(published)}
         </span>
       </div>
@@ -109,6 +110,7 @@ const visibleTags =
             />
           </div>
           <span class="text-50 text-sm font-medium">
+            {`${i18n(I18nKey.updatedAt)} `}
             {formatDateToYYYYMMDD(updated)}
           </span>
         </div>
