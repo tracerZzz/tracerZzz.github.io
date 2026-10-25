@@ -42,7 +42,7 @@ const pages = resolvePageToggles({
 
 export const siteConfig: SiteConfig = {
 	// 站点标题
-	title: "À Çraftman",
+	title: "A Craftsman",
 
 	// 站点副标题
 	subtitle: "tracerZzz'blog",
@@ -101,10 +101,10 @@ export const siteConfig: SiteConfig = {
 		logo: {
 			type: "image",
 			value: "/favicon.svg",
-			alt: "À Çraftman",
+			alt: "A Craftsman",
 		},
 		// 导航栏标题
-		title: "À Çraftman",
+		title: "A Craftsman",
 		// 全宽导航栏，导航栏是否占满屏幕宽度
 		widthFull: false,
 		// 导航菜单对齐方式，left：左对齐，center：居中
