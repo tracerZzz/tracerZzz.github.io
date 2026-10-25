@@ -52,6 +52,40 @@ flowchart LR
 
 一次刷新请求的生命周期：
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as 客户
+    participant API as 多云 API
+    participant DB as MongoDB
+    participant MQ as RocketMQ
+    participant W as 下发服务
+    participant R as Redis
+    participant V as 厂商（经适配器）
+    participant P as 定时轮询
+
+    C->>API: 提交刷新（≤ 1000 URL）
+    API->>API: 多云层配额、限频校验
+    API->>DB: 创建主任务
+    API->>DB: 按厂商和单次上限拆出子任务
+    API->>MQ: 投递子任务
+    API-->>C: 返回主任务 ID
+    MQ->>W: 消费子任务
+    W->>R: 检查并扣减该厂商配额
+    alt 配额充足
+        W->>V: 提交 URL
+        V-->>W: 厂商任务 ID
+        W->>DB: 子任务 → 已提交
+    else 配额不足
+        W->>MQ: 延迟后重新投递
+    end
+    loop 每个主任务定时执行，直到全部子任务结束
+        P->>V: 查询子任务执行状态
+        P->>DB: 更新子任务，汇总主任务状态和完成率
+    end
+    C->>API: 查询主任务进度
+```
+
 1. 客户调用多云接口提交 URL，多云层先做**自己的配额和限频**；
 2. 生成一个**主任务**，存进 MongoDB；
 3. 按客户接入的厂商、以及每家厂商的单次上限，把主任务拆成多个**子任务**，投递到 RocketMQ 排队；
@@ -158,6 +192,24 @@ func dispatch(task *MainTask) error {
 
 所以配额计数放在 **Redis** 里，所有下发服务共享。Redis 的键可以设置过期时间，**正好对应厂商限额的时间窗口**：限每秒就让键 1 秒过期，限每天就让键在当天结束时过期，窗口一过，计数自动清零。
 
+```mermaid
+flowchart LR
+    subgraph workers["多台下发服务（同时给厂商 A 提交）"]
+        W1["下发服务 1<br/>本批 100 个"]
+        W2["下发服务 2<br/>本批 100 个"]
+        W3["下发服务 3<br/>本批 100 个"]
+    end
+    subgraph redis["Redis：厂商 A 的配额计数"]
+        K1["quota:A:账号:当前窗口<br/>已用 / 上限<br/>TTL = 窗口剩余时间"]
+    end
+    W1 -->|Lua 原子扣减| K1
+    W2 -->|Lua 原子扣减| K1
+    W3 -->|Lua 原子扣减| K1
+    K1 -->|未超限：放行| A["调用厂商 A 接口"]
+    K1 -->|超限：回退计数| D["子任务延迟重投"]
+    K1 -.->|窗口结束，键过期| N["计数自动清零"]
+```
+
 检查和扣减必须是原子的，否则两台服务器同时读到「还剩 100」，都去提交 100 个，就超了。用一段 Lua 脚本让 Redis 一次完成：
 
 ```go
@@ -192,6 +244,21 @@ func acquire(ctx context.Context, vendor, account string, n, limit int, window t
 这样做的考虑是：一家厂商出问题，不应该拖住其他厂商的结果。客户能清楚地看到「厂商 A、B 已刷新成功，厂商 C 失败」，再决定要不要单独重试。
 
 **进度汇总**：厂商的刷新、预热都是异步的，提交成功之后还要等它真正执行完。所以每个主任务都会开启一个**定时轮询**：
+
+```mermaid
+flowchart TB
+    M["主任务：刷新 3000 个 URL<br/>完成率 = 已结束子任务 / 子任务总数"]
+    M --> A["厂商 A（单次上限 1000）"]
+    M --> B["厂商 B（单次上限 500）"]
+    A --> A1["子任务 A-1 ✅ 成功"]
+    A --> A2["子任务 A-2 ✅ 成功"]
+    A --> A3["子任务 A-3 ⏳ 执行中"]
+    B --> B1["子任务 B-1 ✅ 成功"]
+    B --> B2["子任务 B-2 ❌ 重试 3 次后失败"]
+    B --> B3["……共 6 个"]
+```
+
+图中的厂商上限只是示意。同一批 URL 要分别提交给客户接入的每一家厂商，所以每家厂商各有一组子任务。
 
 - 查询所有未结束子任务在厂商侧的状态，经适配器翻译成统一状态后更新；
 - 根据子任务的状态，汇总出主任务的状态和**完成率**；
