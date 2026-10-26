@@ -39,7 +39,7 @@
 | `musicConfig.ts` | 音乐播放器改用 Meting 接口播放网易云歌单 `2059184801`，导航栏和侧边栏都显示 |
 | `coverImageConfig.ts` | `enableInPost` 改为 `false`：文章详情页不显示封面（封面取自正文里的图，开着会重复），列表、分享海报、预览图照样用 |
 | `commentConfig.ts` | 评论系统改为 Giscus：仓库 `tracerZzz/tracerZzz.github.io`，Discussions 分类 Announcements，按网址（pathname）区分评论 |
-| `FooterConfig.html` | 页脚加上 ICP 备案号 `京ICP备18058118号`，链接到 `https://beian.miit.gov.cn/` |
+| `FooterConfig.html` | 页脚加上 ICP 备案号 `京ICP备18058118号-1`，链接到 `https://beian.miit.gov.cn/` |
 
 ## 三、我们自己加的文件（主题里没有，升级不会冲突）
 
