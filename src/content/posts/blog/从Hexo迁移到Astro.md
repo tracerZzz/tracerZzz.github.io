@@ -1,7 +1,7 @@
 ---
 title: 从 Hexo 迁移到 Astro：图片找回、旧链接、欢迎页重写与双站点部署
 published: 2026-10-23T10:30:00+08:00
-updated: 2026-10-26T14:30:00+08:00
+updated: 2026-10-27T01:40:00+08:00
 description: 记录把 2016 年搭的 Hexo 博客迁移到 Astro 的全过程：从七牛找回图片、转换文章、保留旧链接、重写 SVG 动画欢迎页、搭建自动检查，部署到阿里云 ESA 和 GitHub Pages，以及从 Retypeset 换到 Firefly 主题，中间踩过的坑和背后的原理。
 tags:
   - astro
@@ -642,6 +642,34 @@ git add -A && git commit -m "新文章" && git push
 ```
 
 两三分钟后，两个站点都更新了。构建失败不会替换线上版本；ESA 的部署记录里也可以一键回滚到之前的版本。
+
+### 换一台电脑写博客
+
+部署全在云端，本地只负责写、预览和推送，所以换一台电脑只要装这几样：
+
+| 工具 | 要求 | 用途 |
+| --- | --- | --- |
+| Git | 任意新版本，macOS 自带 | 拉代码、提交、推送 |
+| Node.js | 22.23 以上（`package.json` 里的 `engines`） | 跑 Astro |
+| pnpm | 11.22.0（`package.json` 里的 `packageManager`） | 装依赖、预览、构建 |
+| GitHub 登录 | 个人访问令牌，或 `gh auth login` | 推送 |
+
+```bash
+corepack enable                                          # Node 自带，按 packageManager 自动用对的 pnpm 版本
+npm config set registry https://registry.npmmirror.com   # 国内 npm 镜像
+mkdir -p ~/blog && cd ~/blog
+git clone https://github.com/tracerZzz/tracerZzz.github.io.git astro
+cd astro && pnpm install && pnpm dev
+git config --global user.name "tracerZzz"
+git config --global user.email "tracerZzz@users.noreply.github.com"
+```
+
+用令牌推送时，第一次 `git push` 输入用户名和令牌（不是登录密码），macOS 自带的 git 会把它存进钥匙串，以后不用再输。
+
+在一台[用 OCLP 升到 Sonoma 的 2016 款 MacBook Pro](/posts/oclp-sonoma-2016-macbook-pro/) 上搭这套环境时，遇到两个坑：
+
+- **Homebrew 装 Node 要现场编译几个小时**：`brew install node@22` 之后开始一个个编译 openssl、python、cmake。Homebrew 已经不再为 Intel 芯片 + Sonoma 这种组合提供编译好的安装包（bottle），只能从源码编。苹果芯片的 Mac 不会这样。解决：Node 不走 Homebrew，用官方 `.pkg` 安装包（国内可以从 npmmirror 镜像的 `latest-v22.x` 目录下载）或者 nvm，几分钟就好。
+- **Homebrew 是另一个用户装的**：Intel Mac 上 Homebrew 装在 `/usr/local`，所有者是当初安装它的用户，换了用户就没有写入权限。用 `sudo chown -R $(whoami):admin $(brew --prefix)/*` 改一下所有权。
 
 ## 十五、还没做的
 
