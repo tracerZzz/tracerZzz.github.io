@@ -1,7 +1,7 @@
 ---
 title: 从 Hexo 迁移到 Astro：图片找回、旧链接、欢迎页重写与双站点部署
 published: 2026-10-23T10:30:00+08:00
-updated: 2026-10-27T01:40:00+08:00
+updated: 2026-10-27T20:00:00+08:00
 description: 记录把 2016 年搭的 Hexo 博客迁移到 Astro 的全过程：从七牛找回图片、转换文章、保留旧链接、重写 SVG 动画欢迎页、搭建自动检查，部署到阿里云 ESA 和 GitHub Pages，以及从 Retypeset 换到 Firefly 主题，中间踩过的坑和背后的原理。
 tags:
   - astro
@@ -552,6 +552,26 @@ Firefly 内置了五种评论系统，改 `src/config/commentConfig.ts` 就能�
   - `apple-touch-icon.png`：180×180，苹果设备"添加到主屏幕"时用。这张**不带圆角**，因为 iOS 会自己按系统的形状裁圆角，自带圆角反而会在四个角留下底色。
 - **怎么生成的**：先手写 SVG（一个圆角方块加两个矩形，刻度是四条短线），再用无头浏览器把 SVG 渲染成各尺寸的 PNG，最后用 Python 的 Pillow 把 16/32/48 三张合成一个 `.ico`。
 - **配置**：在 `src/config/siteConfig.ts` 的 `favicon` 里列出这三个文件；`navbar.logo` 从图标库的 `icon` 类型改成 `image` 类型，指向 `/favicon.svg`。都是主题提供的配置项，不用改源码。
+
+### 加粗紧挨中文标点时不生效
+
+写文章时发现，有些加粗在页面上原样显示成了星号，比如 `**OCLP 版本：2.5.1。**下载时……`、`是**「需要时启用」**开着`。
+
+这不是主题的问题，而是 Markdown 规范本身的规定。CommonMark 判断一对 `**` 能不能算加粗，要看它两边的字符：开头的 `**` 如果后面紧跟标点，那它前面必须是空格或标点；结尾的 `**` 如果前面紧挨标点，那它后面也必须是空格或标点。这套规则是照着英文设计的，英文单词之间有空格，几乎不会撞上；中文不用空格，`。**下` 这种「标点 + 星号 + 汉字」的组合就被判成了普通文字。
+
+解决办法是装 [remark-cjk-friendly](https://github.com/tats-u/markdown-cjk-friendly) 插件，它专门修正中日韩文字的这条规则，放在 `astro.config.mjs` 的 `remarkPlugins` 第一个：
+
+```bash
+pnpm add remark-cjk-friendly
+```
+
+```js
+import remarkCjkFriendly from "remark-cjk-friendly";
+// ...
+remarkPlugins: [remarkCjkFriendly, /* 其他插件 */],
+```
+
+装之前也可以绕过：在星号外侧加个空格，或者把标点挪到加粗外面。但一来容易忘，二来 Typora、Obsidian 预览时是正常的，只有发布后才发现，所以还是在构建这一层统一解决。
 
 ### 把对主题的修改记成清单
 

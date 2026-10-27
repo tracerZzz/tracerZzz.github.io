@@ -22,6 +22,7 @@
 | `src/components/layout/PostMeta.astro` | 文章页的发布日期前加「发布于」、更新日期前加「更新于」（复用主题自带的 `I18nKey.publishedAt` / `updatedAt` 文案）；列表卡片传了 `hideUpdateDate`，不显示文字 | 原来两个日期只有图标，并排放着分不清哪个是发布、哪个是更新 | 打开一篇有 `updated` 的文章（如 Nginx 那篇），标题下显示「发布于 … 更新于 …」；首页卡片只有日期 |
 | `astro.config.mjs` | swup 加了 `ignore` 选项，PDF、压缩包、Office 文档、音视频链接不走 swup | swup 默认拦截所有站内链接，会把 PDF 当网页去加载：地址栏变成 .pdf，页面却没换，浏览器返回也错乱 | 打开专利那篇文章，点「下载 PDF」能正常打开 PDF，浏览器返回能回到文章 |
 | `src/components/layout/Navbar.astro` | 图片 logo 的 `<img>` 加了 `width="28" height="28"` | logo 用的是 `favicon.svg`，只有 viewBox 没有宽高；整页刷新时 CSS 还没加载，会按默认尺寸画出一个大图标闪一下 | 浏览器开慢速网络（DevTools → Network → Slow 3G）刷新页面，导航栏图标不会先变大再缩小 |
+| `astro.config.mjs` | 引入 `remark-cjk-friendly`，放在 `remarkPlugins` 第一个（依赖也加进了 `package.json`） | 按 CommonMark 规范，`**` 紧挨着中文标点、另一侧又紧挨着汉字时不算加粗，比如 `是**「需要时启用」**开着`，页面上会原样显示星号 | 打开《让 Mac 指定网站走手机热点》，搜「需要时启用」，是加粗的、没有星号 |
 
 `src/content.config.ts` 曾经改过（用 `abbrlink` 当文章 ID），后来改用 Astro 自带的 `slug` 字段，已经恢复成主题原版。
 

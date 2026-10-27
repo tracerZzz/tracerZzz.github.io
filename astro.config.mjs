@@ -26,6 +26,7 @@ import remarkAdmonitionToBlockquoteCallout from "remark-admonition-to-blockquote
 import remarkDirective from "remark-directive"; /* Handle directives */
 import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
+import remarkCjkFriendly from "remark-cjk-friendly"; /* 中文标点旁的加粗、斜体也能生效 */
 import {
 	commentConfig,
 	dynamicConfig,
@@ -299,6 +300,7 @@ export default defineConfig({
 	markdown: {
 		processor: unified({
 			remarkPlugins: [
+				remarkCjkFriendly, /* 放最前面：它扩展的是解析器本身 */
 				...(siteConfig.post.rehypeCallouts.enablePythonMarkdownAdmonitions !==
 				false
 					? [remarkAdmonitionToBlockquoteCallout]
