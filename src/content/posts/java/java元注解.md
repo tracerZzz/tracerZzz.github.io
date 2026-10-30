@@ -6,7 +6,6 @@ tags:
   - java
 draft: true
 category: Java
-image: ./java元注解.assets/2018031215208216305763.png
 slug: java-meta-annotations
 ---
 

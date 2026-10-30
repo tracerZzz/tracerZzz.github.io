@@ -6,7 +6,6 @@ tags:
   - docker
 draft: true
 category: Docker
-image: ./docker命令.assets/2018061615291325776173.png
 slug: docker-commands
 ---
 

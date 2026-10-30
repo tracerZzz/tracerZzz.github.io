@@ -7,7 +7,6 @@ tags:
   - 数据结构
 draft: true
 category: Java
-image: ./数据结构java代码实现笔记文档.assets/20180309152056800556014.png
 slug: java-data-structures
 ---
 

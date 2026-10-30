@@ -1,7 +1,7 @@
 ---
 title: 从 Hexo 迁移到 Astro：图片找回、旧链接、欢迎页重写与双站点部署
 published: 2026-10-23T10:30:00+08:00
-updated: 2026-10-27T20:00:00+08:00
+updated: 2026-10-31T01:00:00+08:00
 description: 记录把 2016 年搭的 Hexo 博客迁移到 Astro 的全过程：从七牛找回图片、转换文章、保留旧链接、重写 SVG 动画欢迎页、搭建自动检查，部署到阿里云 ESA 和 GitHub Pages，以及从 Retypeset 换到 Firefly 主题，中间踩过的坑和背后的原理。
 tags:
   - astro
@@ -100,7 +100,7 @@ curl --aws-sigv4 "aws:amz:cn-east-1:s3" \
 | `excerpt`（里面嵌着 HTML 图片标签） | `description` | `description` | 去掉 HTML，只留纯文字。不写的话主题会从正文截取 |
 | `tags` | `tags` | `tags` | 不变 |
 | `categories`（可以多个） | 没有 | `category`（只能一个） | Retypeset 没有分类；Firefly 有，按文章所在文件夹自动填上 |
-| 无 | 没有 | `image` | 封面图，显示在文章列表里；文章详情页不显示，见下面"封面怎么写" |
+| 无 | 没有 | `image` | 封面图，显示在文章列表里；文章详情页不显示。后来全部不用了，见下面"封面怎么写" |
 | 无 | `pin: 1` | `pinned: true` | 置顶 |
 | `_draft` 目录 | `draft: true` | `draft: true` | 草稿不会发布 |
 | `permalink` 规则（全局） | `abbrlink` | `slug` | 文章网址，比如 `git-commands` 对应 `/posts/git-commands/`。Retypeset 用的是自己的 `abbrlink` 字段；换到 Firefly 后改用 Astro 自带的 `slug`，见第十二节 |
@@ -135,6 +135,7 @@ image: ./文章名.assets/cover.png
 - **不填或者留空**：这篇没有封面，列表里只显示文字。`pnpm new-post` 生成的模板默认是 `image: ''`。主题有"随机封面"功能（`image: "api"`，从网上的随机图接口取图），没开。
 - **会出现在哪**：文章列表的卡片配图、分享海报、搜索引擎和社交软件的预览图（`og:image`）。文章详情页**不显示**。
 - **为什么详情页不显示**：Firefly 默认会在文章标题下面再放一张大封面（`src/config/coverImageConfig.ts` 里的 `enableInPost`）。迁移时脚本给 11 篇有图的文章填的封面都是正文第一张图，开着这个选项，进文章就会先看到封面、紧接着又是同一张图。所以把 `enableInPost` 改成了 `false`。这是主题给用户改的配置项，不用动源码，也不用删文章里的图。以后如果想让某篇文章顶部有大图，就直接把图放在正文开头。
+- **后来决定全部不用封面**（2026-10-31）：试过给两篇新文章画专门的封面插画，但主题的封面框是固定比例的（电脑端列表约 1.5 : 1，手机端网格 2 : 1），图片按填满方式显示，不同比例下总要裁掉一部分，画面里的文字很容易被切掉。最后把所有文章的 `image` 都删了（10 篇，封面原本都是正文里的第一张图，正文里的图都还在），列表只显示文字；想要配图的文章，把图放在正文开头。代价是分享海报和社交软件的预览里也就没有图了。
 
 有个小坑：Hexo 的 `excerpt` 里直接写了没加引号的 HTML，YAML 解析会报错。脚本遇到解析失败时，先去掉 `excerpt` 再重试。
 

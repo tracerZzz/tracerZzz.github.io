@@ -9,7 +9,6 @@ tags:
   - 数据库
 draft: false
 category: 架构
-image: ./通过keepalived搭建Mysql、zabbix双主模式的高可用集群系统.assets/20180316152118561067778.png
 slug: keepalived-mysql-dual-master
 ---
 

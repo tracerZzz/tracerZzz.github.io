@@ -6,7 +6,6 @@ tags:
   - webpack
 draft: true
 category: JavaScript
-image: ./webpack快速入门.assets/20180308152048985612690.png
 slug: webpack-quick-start
 ---
 

@@ -6,7 +6,6 @@ tags:
   - git
 draft: true
 category: Git
-image: ./git常用命令.assets/20180514152628079993927.png
 slug: git-commands
 ---
 
