@@ -12,6 +12,8 @@ draft: false
 slug: go-gmp-scheduler
 ---
 
+![一家多诊室的医院：四间诊室 P0 到 P3 各有一位医生，P3 门口没人，正从 P2 门口偷走一半病人；下面的大厅是全局队列，角落里的巡查员是 sysmon](./用医院类比理解Go的GMP调度.assets/hospital.webp)
+
 我之前在[用 Python 协程把成本数据产出提速十倍](/posts/python-asyncio-concurrent-queries/)那篇里，用"医院看病"讲过 Python 的异步：一个医生、一个诊室、病人去做检查时医生先看下一位。这次就沿着这个类比往下走：**Go 相当于把这家诊所扩建成了一家多诊室的医院**。
 
 > 说明：文中涉及的运行时细节，我对照了 Go 1.24 的运行时源码（`runtime/proc.go` 等）；两个示例程序是在 Go 1.24 上实际跑过的。不同版本的实现细节可能有出入。
