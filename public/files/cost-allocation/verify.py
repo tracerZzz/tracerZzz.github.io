@@ -1,4 +1,4 @@
-"""用 bandwidth-sample.csv 复算《一张账单怎么分》里的分摊对比表。
+﻿"""用 bandwidth-sample.csv 复算《一张账单怎么分》里的分摊对比表。
 
 用法：python3 verify.py bandwidth-sample.csv
 只依赖 Python 标准库。
