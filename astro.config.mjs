@@ -43,6 +43,7 @@ import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.
 import { rehypeDiagramPanZoom } from "./src/plugins/rehype-diagram-panzoom.mjs";
 import rehypeEmailProtection from "./src/plugins/rehype-email-protection.mjs";
 import rehypeExternalLinks from "./src/plugins/rehype-external-links.mjs";
+import rehypeFileLinks from "./src/plugins/rehype-file-links.mjs";
 import rehypeFigure from "./src/plugins/rehype-figure.mjs";
 import rehypeImageReferrerPolicy from "./src/plugins/rehype-image-referrerpolicy.mjs";
 import { rehypeMermaid } from "./src/plugins/rehype-mermaid.mjs";
@@ -155,8 +156,11 @@ export default defineConfig({
 			// 滚动相关配置优化
 			resolveUrl: (url) => url,
 			animateHistoryBrowsing: false,
-			// PDF、压缩包等文件不走 swup：swup 会把它们当成网页去加载，地址栏变了页面却没换，浏览器返回也会错乱
-			ignore: [/\.(pdf|zip|rar|7z|gz|tar|docx?|xlsx?|pptx?|mp3|mp4|webm)(?:[?#]|$)/i],
+			// 文件链接不走 swup：swup 会把它们当成网页去加载，地址栏变了页面却卡在切换动画里，浏览器后退也会错乱。
+			// 博客页面的地址都以 / 结尾（旧 Hexo 跳转页是 .html），所以地址最后一段带扩展名、又不是 .html 的，
+			// 一律交给浏览器自己处理：CSV、脚本、PDF、压缩包、rss.xml 等都包括在内，不用再逐个列扩展名。
+			// (?<!\/) 是为了跳过 https:// 后面的域名（域名里也有点）。
+			ignore: [/(?<!\/)\/[^/?#]+\.(?!html?(?:[?#]|$))[a-z0-9]+(?:[?#]|$)/i],
 			skipPopStateHandling: (event) => {
 				// 跳过锚点链接的处理，让浏览器原生处理
 				return event.state?.url?.includes("#");
@@ -329,6 +333,8 @@ export default defineConfig({
 					rehypeImageReferrerPolicy,
 					{ domains: siteConfig.imageOptimization?.noReferrerDomains || [] },
 				],
+				// 本站 /files/ 下的附件：加 download、不走 swup，并补一个链到 GitHub 的「在线查看」
+				[rehypeFileLinks, { repo: "tracerZzz/tracerZzz.github.io", branch: "master" }],
 				[rehypeExternalLinks, { siteUrl: siteConfig.site_url }],
 				[rehypeEmailProtection, { method: "base64" }], // 邮箱保护插件，支持 'base64' 或 'rot13'
 				[

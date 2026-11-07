@@ -20,7 +20,7 @@
 | `src/components/misc/License.astro` | "本文链接"加了 `data-post-link` 和一段脚本，换成当前域名 | 同上 | 在 tracerzzz.github.io 的文章底部，本文链接是 github.io 的地址 |
 | `scripts/new-post.js` | 生成的 `slug` 只取文件名（不带文件夹）；日期带时分和 `+08:00` | 带文件夹的 slug 会让网址多一层目录；没时区会被当成 UTC | `pnpm new-post git/测试`，看生成的开头 |
 | `src/components/layout/PostMeta.astro` | 文章页的发布日期前加「发布于」、更新日期前加「更新于」（复用主题自带的 `I18nKey.publishedAt` / `updatedAt` 文案）；列表卡片传了 `hideUpdateDate`，不显示文字 | 原来两个日期只有图标，并排放着分不清哪个是发布、哪个是更新 | 打开一篇有 `updated` 的文章（如 Nginx 那篇），标题下显示「发布于 … 更新于 …」；首页卡片只有日期 |
-| `astro.config.mjs` | swup 加了 `ignore` 选项，PDF、压缩包、Office 文档、音视频链接不走 swup | swup 默认拦截所有站内链接，会把 PDF 当网页去加载：地址栏变成 .pdf，页面却没换，浏览器返回也错乱 | 打开专利那篇文章，点「下载 PDF」能正常打开 PDF，浏览器返回能回到文章 |
+| `astro.config.mjs` | swup 的 `ignore` 选项：地址最后一段带扩展名、又不是 `.html` 的链接（CSV、脚本、PDF、压缩包、`rss.xml` 等）一律不走 swup；`rehypePlugins` 里加了 `rehypeFileLinks`（见下面第三节） | swup 默认拦截所有站内链接，会把文件当网页去加载：地址栏变成文件地址，页面卡在切换动画里，浏览器后退也错乱。最早只列了 PDF、压缩包等扩展名，后来 CSV、`.py` 漏掉了又出了一次同样的问题，所以改成按"有没有扩展名"判断 | 打开《成本分摊的理论与实践》，点 `bandwidth-sample.csv` 直接下载、页面不变，浏览器后退回到上一页；点旁边的「在线查看」在新标签页打开 GitHub |
 | `src/components/layout/Navbar.astro` | 图片 logo 的 `<img>` 加了 `width="28" height="28"` | logo 用的是 `favicon.svg`，只有 viewBox 没有宽高；整页刷新时 CSS 还没加载，会按默认尺寸画出一个大图标闪一下 | 浏览器开慢速网络（DevTools → Network → Slow 3G）刷新页面，导航栏图标不会先变大再缩小 |
 | `astro.config.mjs` | 引入 `remark-cjk-friendly`，放在 `remarkPlugins` 第一个（依赖也加进了 `package.json`） | 按 CommonMark 规范，`**` 紧挨着中文标点、另一侧又紧挨着汉字时不算加粗，比如 `是**「需要时启用」**开着`，页面上会原样显示星号 | 打开《让 Mac 指定网站走手机热点》，搜「需要时启用」，是加粗的、没有星号 |
 
@@ -46,6 +46,7 @@
 
 - `src/pages/welcome.astro`、`src/components/welcome/`、`src/scripts/welcome/`：欢迎页。它套在主题的 `MainGridLayout` 里，用一个全屏图层盖住下面的博客页面；swup 切换时由 `controller.ts` 挂载 / 卸载。为了不让底下的博客一闪而过，样式里用到了主题的 `#content-wrapper`（欢迎页存在时关掉它的入场动画和 `transform`）。主题升级后如果 swup 容器的 ID（`#swup-container`）、`#content-wrapper` 或 `MainGridLayout` 变了，要跟着检查
 - `src/scripts/music-resume.ts`：整页跳转后恢复音乐播放，只调用主题播放器公开的 `window.__fireflyMusic` 接口；主题升级后如果这个接口变了，要跟着改
+- `src/plugins/rehype-file-links.mjs`：文章里指向 `/files/` 的附件链接自动加 `download` 和 `data-no-swup`，并在后面补一个链到 GitHub 仓库同一文件的「在线查看」。附件放在 `public/files/` 下，写文章时用普通 Markdown 链接即可
 - `public/2016/`、`public/2017/`、`public/2018/`：旧 Hexo 网址的跳转页
 - `public/favicon.ico`、`public/favicon.svg`、`public/apple-touch-icon.png`（丁字尺图标）、`src/assets/images/avatar-shiba.webp`、`src/assets/images/wallpaper/`
 - `esa.jsonc`：阿里云 ESA Pages 的构建配置
