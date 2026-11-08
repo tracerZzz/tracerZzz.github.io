@@ -12,6 +12,11 @@ import sanitizeHtml from "sanitize-html";
 // 自己加的：feed 里的代码块换回朴素的 <pre><code>（见 src/plugins/feed-code-blocks.mjs）
 import { simplifyCodeBlocks } from "../plugins/feed-code-blocks.mjs";
 import { saveFeedDiagram } from "../plugins/feed-diagrams.mjs";
+// 自己加的：feed 里去掉标题锚点、地址补成完整网址（见 src/plugins/feed-links.mjs）
+import {
+	absoluteUrlTransforms,
+	removeHeadingAnchors,
+} from "../plugins/feed-links.mjs";
 // 自己加的：feed 里的公式只保留 MathML（见 src/plugins/feed-math.mjs）
 import {
 	katexToMathml,
@@ -186,8 +191,9 @@ export async function renderFeedEntries(
 			);
 		}
 		// 自己加的：KaTeX 公式只保留 MathML
-		const { html: cleanedContent, failed: mathFailed } =
-			katexToMathml(withCode);
+		const { html: withMath, failed: mathFailed } = katexToMathml(withCode);
+		// 自己加的：去掉标题旁的「#」锚点
+		const cleanedContent = removeHeadingAnchors(withMath);
 		if (mathFailed > 0) {
 			console.warn(
 				`[feed] 《${post.data.title}》里有 ${mathFailed} 个公式没能转成 MathML，feed 里会显示错乱（KaTeX 的输出结构可能变了）`,
@@ -208,6 +214,10 @@ export async function renderFeedEntries(
 					},
 					// 自己加的：保留代码块的语言标记，支持的阅读器可以据此高亮
 					allowedClasses: { code: ["language-*"] },
+					// 自己加的：图片和链接补成完整网址，页内跳转指向网页上的对应位置
+					transformTags: absoluteUrlTransforms(
+						new URL(link, import.meta.env.SITE).href,
+					),
 				}),
 			),
 			isPasswordProtected: false,

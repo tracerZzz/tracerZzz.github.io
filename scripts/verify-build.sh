@@ -76,5 +76,13 @@ for feed in dist/rss.xml dist/atom.xml; do
 done
 echo "ok  feed math ($want)"
 
+# feed 里的地址：图片和链接都是完整网址；标题旁的「#」锚点已去掉
+# （rss.xml 正文是转义过的 &lt;a href=&quot;…，atom.xml 是原样的 <a href="…）
+for feed in dist/rss.xml dist/atom.xml; do
+  grep -qE '<(a|img) [^>]*(href|src)="(/|#|\./)|&lt;(a|img) ([^&]|&quot;[^&]*&quot;)*(href|src)=&quot;(/|#|\./)' "$feed" && err "$feed has relative links or images"
+  grep -qE '(<|&lt;)span(>|&gt;)#(<|&lt;)/span' "$feed" && err "$feed still has heading anchors"
+done
+echo "ok  feed links"
+
 [ $fail -eq 0 ] && echo "all checks passed"
 exit $fail
