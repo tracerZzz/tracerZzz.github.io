@@ -8,6 +8,16 @@ import { i18n } from "@i18n/translation";
 import { url } from "@utils/url-utils";
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import sanitizeHtml from "sanitize-html";
+// 自己加的：feed 里的流程图换成独立 SVG 文件（见 src/plugins/feed-diagrams.mjs）
+import { saveFeedDiagram } from "../plugins/feed-diagrams.mjs";
+import {
+	DIAGRAM_CONTAINER,
+	DIAGRAM_WRAPPER,
+	MERMAID_CONTAINER,
+	MERMAID_SVG_DARK,
+	MERMAID_SVG_LIGHT,
+	MERMAID_WRAPPER,
+} from "../plugins/utils/diagramConstants.js";
 
 /**
  * 归一化后的 feed 条目，供 RSS 与 Atom 共用。
@@ -77,6 +87,35 @@ function collapseFeedWhitespace(html: string): string {
 }
 
 /**
+ * 自己加的：把正文里的 Mermaid 流程图换成 <img>，指向构建时另存的浅色 SVG 文件。
+ *
+ * 网页上的流程图是内嵌 <svg>（浅色 + 深色两份，靠 CSS 切换），下面的 sanitize-html
+ * 会把 <svg> 整个删掉，阅读器也不执行 CSS，所以只取浅色那份存成文件再引用。
+ * 结构对应 src/plugins/rehype-mermaid.mjs 的输出，主题改了输出结构要跟着改。
+ */
+const MERMAID_BLOCK_RE = new RegExp(
+	`<div class="${DIAGRAM_CONTAINER} ${MERMAID_CONTAINER}"><div class="${DIAGRAM_WRAPPER} ${MERMAID_WRAPPER}">` +
+		`<div class="${MERMAID_SVG_LIGHT}">(<svg[\\s\\S]*?</svg>)\\s*</div>` +
+		`<div class="${MERMAID_SVG_DARK}"><svg[\\s\\S]*?</svg>\\s*</div></div></div>`,
+	"g",
+);
+
+function replaceMermaidWithImages(html: string, postTitle: string): string {
+	const site = import.meta.env.SITE;
+	const replaced = html.replace(MERMAID_BLOCK_RE, (_, svg: string) => {
+		const src = new URL(url(saveFeedDiagram(svg)), site).href;
+		return `<p><img src="${src}" alt="流程图"></p>`;
+	});
+	// 只认图表容器本身；正文末尾的 pan-zoom 脚本里也有这个类名，不能直接搜类名
+	if (replaced.includes(`<div class="${MERMAID_SVG_LIGHT}">`)) {
+		console.warn(
+			`[feed] 《${postTitle}》里有流程图没能转成图片，feed 里会缺图（rehype-mermaid 的输出结构可能变了）`,
+		);
+	}
+	return replaced;
+}
+
+/**
  * 把路径解析成绝对 URL（Atom 规范强制要求绝对 IRI）。
  * path 为相对路径时直接相对 site 求绝对。
  */
@@ -127,7 +166,10 @@ export async function renderFeedEntries(
 		}
 		const { Content } = await render(post);
 		const rawContent = await container.renderToString(Content);
-		const cleanedContent = stripInvalidXmlChars(rawContent);
+		const cleanedContent = replaceMermaidWithImages(
+			stripInvalidXmlChars(rawContent),
+			post.data.title,
+		);
 		entries.push({
 			...base,
 			content: collapseFeedWhitespace(

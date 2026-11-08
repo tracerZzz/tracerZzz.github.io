@@ -39,6 +39,7 @@ import {
 } from "./src/config";
 import I18nKey from "./src/i18n/i18nKey";
 import { i18n } from "./src/i18n/translation";
+import { feedDiagrams } from "./src/plugins/feed-diagrams.mjs"; /* 自己加的：feed 流程图另存为 SVG 文件 */
 import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
 import { rehypeDiagramPanZoom } from "./src/plugins/rehype-diagram-panzoom.mjs";
 import rehypeEmailProtection from "./src/plugins/rehype-email-protection.mjs";
@@ -119,6 +120,8 @@ export default defineConfig({
 	},
 
 	integrations: [
+		// 自己加的：RSS / Atom 里的流程图换成 /diagrams/ 下的 SVG 文件，构建结束时复制到输出目录
+		feedDiagrams(),
 		// 自己加的脚本：刷新页面后接着播放音乐（music-resume.ts）；欢迎页的挂载 / 卸载（welcome/controller.ts）
 		{
 			name: "local-scripts",

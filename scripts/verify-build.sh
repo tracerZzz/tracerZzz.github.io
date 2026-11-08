@@ -49,5 +49,17 @@ else
   err "missing $w"
 fi
 
+# feed 里的流程图：每篇有 mermaid 的文章，图都换成了 /diagrams/ 下的图片，且文件已发布
+want=$(for f in $(posts published); do grep -c '^```mermaid' "$f"; done | awk '{s+=$1} END {print s+0}')
+for feed in dist/rss.xml dist/atom.xml; do
+  # rss.xml 的正文是转义过的（src=&quot;…），atom.xml 用 CDATA（src="…"），两种都认
+  got=$(grep -oE 'src=("|&quot;)https?://[^"&]*/diagrams/[0-9a-f]+\.svg' "$feed" | wc -l)
+  [ "$got" -eq "$want" ] || err "$feed: expected $want diagram images, found $got"
+done
+for svg in $(grep -o '/diagrams/[0-9a-f]*\.svg' dist/rss.xml | sort -u); do
+  [ -s "dist$svg" ] || err "feed diagram missing: dist$svg"
+done
+echo "ok  feed diagrams ($want)"
+
 [ $fail -eq 0 ] && echo "all checks passed"
 exit $fail
