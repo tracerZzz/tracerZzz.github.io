@@ -49,17 +49,19 @@ else
   err "missing $w"
 fi
 
-# feed 里的流程图：每篇有 mermaid 的文章，图都换成了 /diagrams/ 下的图片，且文件已发布
-want=$(for f in $(posts published); do grep -c '^```mermaid' "$f"; done | awk '{s+=$1} END {print s+0}')
+# feed 里的流程图和公式：都换成了 /diagrams/ 下的图片，且文件已发布
+mermaid=$(for f in $(posts published); do grep -c '^```mermaid' "$f"; done | awk '{s+=$1} END {print s+0}')
+formulas=$(grep -o 'class="katex"' dist/posts/*/index.html | wc -l)
+want=$((mermaid + formulas))
 for feed in dist/rss.xml dist/atom.xml; do
   # rss.xml 的正文是转义过的（src=&quot;…），atom.xml 用 CDATA（src="…"），两种都认
   got=$(grep -oE 'src=("|&quot;)https?://[^"&]*/diagrams/[0-9a-f]+\.svg' "$feed" | wc -l)
-  [ "$got" -eq "$want" ] || err "$feed: expected $want diagram images, found $got"
+  [ "$got" -eq "$want" ] || err "$feed: expected $want diagram/formula images ($mermaid + $formulas), found $got"
 done
 for svg in $(grep -o '/diagrams/[0-9a-f]*\.svg' dist/rss.xml | sort -u); do
   [ -s "dist$svg" ] || err "feed diagram missing: dist$svg"
 done
-echo "ok  feed diagrams ($want)"
+echo "ok  feed diagrams ($mermaid) and formula images ($formulas)"
 
 # feed 里的代码块：已换成朴素的 <pre><code>，不再有 Expressive Code 的逐行结构（行号会单独占一行）
 for feed in dist/rss.xml dist/atom.xml; do
@@ -67,14 +69,12 @@ for feed in dist/rss.xml dist/atom.xml; do
 done
 echo "ok  feed code blocks"
 
-# feed 里的公式：每个 KaTeX 公式都换成了 <math>，且没有 TeX 源码残留
-want=$(grep -o 'class="katex"' dist/posts/*/index.html | wc -l)
+# feed 里的公式：全部是图片（上面已数过），没有退回 MathML 的
 for feed in dist/rss.xml dist/atom.xml; do
-  got=$(grep -oE '(<|&lt;)math xmlns=' "$feed" | wc -l)
-  [ "$got" -eq "$want" ] || err "$feed: expected $want formulas, found $got"
+  grep -qE '(<|&lt;)math xmlns=' "$feed" && err "$feed has formulas that fell back to MathML (MathJax failed, see build log)"
   grep -qE '(<|&lt;)annotation' "$feed" && err "$feed still has TeX annotations"
 done
-echo "ok  feed math ($want)"
+echo "ok  feed math"
 
 # feed 里的地址：图片和链接都是完整网址；标题旁的「#」锚点已去掉
 # （rss.xml 正文是转义过的 &lt;a href=&quot;…，atom.xml 是原样的 <a href="…）

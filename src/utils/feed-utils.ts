@@ -17,9 +17,9 @@ import {
 	absoluteUrlTransforms,
 	removeHeadingAnchors,
 } from "../plugins/feed-links.mjs";
-// 自己加的：feed 里的公式只保留 MathML（见 src/plugins/feed-math.mjs）
+// 自己加的：feed 里的公式换成 SVG 图片，失败时退回 MathML（见 src/plugins/feed-math.mjs）
 import {
-	katexToMathml,
+	katexToImages,
 	MATHML_ATTRIBUTES,
 	MATHML_TAGS,
 } from "../plugins/feed-math.mjs";
@@ -190,15 +190,24 @@ export async function renderFeedEntries(
 				`[feed] 《${post.data.title}》里有 ${failed} 个代码块没能简化，feed 里会显示错乱（Expressive Code 的输出结构可能变了）`,
 			);
 		}
-		// 自己加的：KaTeX 公式只保留 MathML
-		const { html: withMath, failed: mathFailed } = katexToMathml(withCode);
-		// 自己加的：去掉标题旁的「#」锚点
-		const cleanedContent = removeHeadingAnchors(withMath);
-		if (mathFailed > 0) {
+		// 自己加的：KaTeX 公式换成 MathJax 渲染的 SVG 图片，渲染失败的退回 MathML
+		const {
+			html: withMath,
+			fallback: mathFallback,
+			failed: mathFailed,
+		} = katexToImages(withCode);
+		if (mathFallback > 0) {
 			console.warn(
-				`[feed] 《${post.data.title}》里有 ${mathFailed} 个公式没能转成 MathML，feed 里会显示错乱（KaTeX 的输出结构可能变了）`,
+				`[feed] 《${post.data.title}》里有 ${mathFallback} 个公式 MathJax 渲染失败，feed 里退回 MathML（部分网页版阅读器显示不了）`,
 			);
 		}
+		if (mathFailed > 0) {
+			console.warn(
+				`[feed] 《${post.data.title}》里有 ${mathFailed} 个公式没能转换，feed 里会显示错乱（KaTeX 的输出结构可能变了）`,
+			);
+		}
+		// 自己加的：去掉标题旁的「#」锚点（只影响 feed，网页上的锚点不变）
+		const cleanedContent = removeHeadingAnchors(withMath);
 		entries.push({
 			...base,
 			content: collapseFeedWhitespace(
@@ -211,6 +220,14 @@ export async function renderFeedEntries(
 					allowedAttributes: {
 						...sanitizeHtml.defaults.allowedAttributes,
 						...MATHML_ATTRIBUTES,
+						// 公式图片用 style 设置高度、和文字对齐
+						img: [...sanitizeHtml.defaults.allowedAttributes.img, "style"],
+					},
+					allowedStyles: {
+						img: {
+							height: [/^\d+(\.\d+)?ex$/],
+							"vertical-align": [/^-?\d+(\.\d+)?ex$/],
+						},
 					},
 					// 自己加的：保留代码块的语言标记，支持的阅读器可以据此高亮
 					allowedClasses: { code: ["language-*"] },
