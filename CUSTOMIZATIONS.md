@@ -25,6 +25,7 @@
 | `astro.config.mjs` | 引入 `remark-cjk-friendly`，放在 `remarkPlugins` 第一个（依赖也加进了 `package.json`） | 按 CommonMark 规范，`**` 紧挨着中文标点、另一侧又紧挨着汉字时不算加粗，比如 `是**「需要时启用」**开着`，页面上会原样显示星号 | 打开《让 Mac 指定网站走手机热点》，搜「需要时启用」，是加粗的、没有星号 |
 | `src/utils/feed-utils.ts` | 加了 `replaceMermaidWithImages()`：生成 RSS / Atom 正文时，在 sanitize 之前把 Mermaid 流程图（浅色 + 深色两份内嵌 `<svg>`）换成一个 `<img>`，指向另存的浅色 SVG 文件（`https://tracerzzz.cn/diagrams/<哈希>.svg`）；匹配不上时构建日志里打警告 | sanitize-html 的白名单里没有 `<svg>`，流程图在订阅里整个被删掉，阅读器（如 NetNewsWire）里看不到图；阅读器也不执行 CSS / JS，不能靠内嵌 SVG。正则对应 `rehype-mermaid.mjs` 的输出结构，主题改了结构要跟着改 | `pnpm build` 后 `bash scripts/verify-build.sh` 里「feed diagrams」一项通过、构建日志没有 `[feed]` 警告；在阅读器里打开《用医院类比理解Go的GMP调度》，流程图能显示 |
 | `src/utils/feed-utils.ts` | 生成 feed 正文时，在 sanitize 之前用 `simplifyCodeBlocks()`（见第三节 `feed-code-blocks.mjs`）把 Expressive Code 代码块换成朴素的 `<pre><code class="language-xx">`；sanitize 放行 `code` 上的 `language-*` 类名；转换失败时构建日志里打警告 | Expressive Code 每行一个 `<div>`、行号也是单独的 `<div>`，class 被清洗掉后，阅读器里变成「行号一行、代码一行」，还夹着「展开收起」字样 | `verify-build.sh` 里「feed code blocks」一项通过、构建日志没有 `[feed]` 警告；在阅读器里打开《用医院类比理解Go的GMP调度》，代码块是正常的多行代码、没有行号 |
+| `src/utils/feed-utils.ts` | 生成 feed 正文时，在 sanitize 之前用 `katexToMathml()`（见第三节 `feed-math.mjs`）把每个 KaTeX 公式换成它自带的 `<math>`（去掉 TeX 源码 `<annotation>`）；sanitize 放行 MathML 标签和排版属性；转换失败时构建日志里打警告 | KaTeX 每个公式有 MathML 和显示用的 `<span>` 两份，清洗后 `<math>` 被删、`<span>` 没了样式，阅读器里公式文字、TeX 源码、显示文字拼在一起 | `verify-build.sh` 里「feed math」一项通过；在阅读器里打开《CDN 是怎么收费的：从流量、95 峰值到日峰月均，厂商和客户两边看计费》，公式正常显示（分数是上下排的） |
 | `astro.config.mjs` | `integrations` 最前面加了 `feedDiagrams()`（见第三节 `feed-diagrams.mjs`） | 构建结束时把 feed 用到的流程图 SVG 复制到输出目录的 `/diagrams/` | 构建日志里有 `copied N feed diagram(s)`，`dist/diagrams/` 下有文件 |
 
 `src/content.config.ts` 曾经改过（用 `abbrlink` 当文章 ID），后来改用 Astro 自带的 `slug` 字段，已经恢复成主题原版。
@@ -52,6 +53,7 @@
 - `src/plugins/rehype-file-links.mjs`：文章里指向 `/files/` 的附件链接自动加 `download` 和 `data-no-swup`，并在后面补一个链到 GitHub 仓库同一文件的「在 GitHub 上查看」。能不能预览交给 GitHub 判断，插件里不存文件类型清单；个别附件不想要这个链接，把 Markdown 链接标题写成 `no-view`，如 `[数据.zip](/files/数据.zip "no-view")`。附件放在 `public/files/` 下，写文章时用普通 Markdown 链接即可
 - `src/plugins/feed-diagrams.mjs`：RSS / Atom 里的流程图。`saveFeedDiagram()` 把 SVG 按内容哈希命名写进 `node_modules/.cache/feed-diagrams/`，`feedDiagrams()` 集成在构建开始时清空这个目录、构建结束时复制到输出目录的 `/diagrams/`。文件名随内容变，内容不变网址就不变
 - `src/plugins/feed-code-blocks.mjs`：RSS / Atom 里的代码块。`simplifyCodeBlocks()` 找到每个 `<div class="expressive-code">` 代码块，按行取出 `<div class="code">` 里的文字，拼回朴素的 `<pre><code>`；有文件名标题的话放在代码块前面。依赖 Expressive Code 的输出结构，主题升级改了结构要跟着改
+- `src/plugins/feed-math.mjs`：RSS / Atom 里的公式。`katexToMathml()` 把每个 `.katex` / `.katex-display` 换成里面的 `<math>`；`MATHML_TAGS`、`MATHML_ATTRIBUTES` 是 sanitize 要放行的 MathML 标签和属性。依赖 KaTeX 的输出结构
 - `public/2016/`、`public/2017/`、`public/2018/`：旧 Hexo 网址的跳转页
 - `public/favicon.ico`、`public/favicon.svg`、`public/apple-touch-icon.png`（丁字尺图标）、`src/assets/images/avatar-shiba.webp`、`src/assets/images/wallpaper/`
 - `esa.jsonc`：阿里云 ESA Pages 的构建配置

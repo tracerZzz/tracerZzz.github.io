@@ -67,5 +67,14 @@ for feed in dist/rss.xml dist/atom.xml; do
 done
 echo "ok  feed code blocks"
 
+# feed 里的公式：每个 KaTeX 公式都换成了 <math>，且没有 TeX 源码残留
+want=$(grep -o 'class="katex"' dist/posts/*/index.html | wc -l)
+for feed in dist/rss.xml dist/atom.xml; do
+  got=$(grep -oE '(<|&lt;)math xmlns=' "$feed" | wc -l)
+  [ "$got" -eq "$want" ] || err "$feed: expected $want formulas, found $got"
+  grep -qE '(<|&lt;)annotation' "$feed" && err "$feed still has TeX annotations"
+done
+echo "ok  feed math ($want)"
+
 [ $fail -eq 0 ] && echo "all checks passed"
 exit $fail

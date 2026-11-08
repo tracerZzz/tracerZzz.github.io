@@ -12,6 +12,12 @@ import sanitizeHtml from "sanitize-html";
 // 自己加的：feed 里的代码块换回朴素的 <pre><code>（见 src/plugins/feed-code-blocks.mjs）
 import { simplifyCodeBlocks } from "../plugins/feed-code-blocks.mjs";
 import { saveFeedDiagram } from "../plugins/feed-diagrams.mjs";
+// 自己加的：feed 里的公式只保留 MathML（见 src/plugins/feed-math.mjs）
+import {
+	katexToMathml,
+	MATHML_ATTRIBUTES,
+	MATHML_TAGS,
+} from "../plugins/feed-math.mjs";
 import {
 	DIAGRAM_CONTAINER,
 	DIAGRAM_WRAPPER,
@@ -173,17 +179,33 @@ export async function renderFeedEntries(
 			post.data.title,
 		);
 		// 自己加的：Expressive Code 代码块换成朴素的 <pre><code>
-		const { html: cleanedContent, failed } = simplifyCodeBlocks(withDiagrams);
+		const { html: withCode, failed } = simplifyCodeBlocks(withDiagrams);
 		if (failed > 0) {
 			console.warn(
 				`[feed] 《${post.data.title}》里有 ${failed} 个代码块没能简化，feed 里会显示错乱（Expressive Code 的输出结构可能变了）`,
+			);
+		}
+		// 自己加的：KaTeX 公式只保留 MathML
+		const { html: cleanedContent, failed: mathFailed } =
+			katexToMathml(withCode);
+		if (mathFailed > 0) {
+			console.warn(
+				`[feed] 《${post.data.title}》里有 ${mathFailed} 个公式没能转成 MathML，feed 里会显示错乱（KaTeX 的输出结构可能变了）`,
 			);
 		}
 		entries.push({
 			...base,
 			content: collapseFeedWhitespace(
 				sanitizeHtml(cleanedContent, {
-					allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
+					// 自己加的：放行 MathML 标签和排版用的属性（公式）
+					allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+						"img",
+						...MATHML_TAGS,
+					]),
+					allowedAttributes: {
+						...sanitizeHtml.defaults.allowedAttributes,
+						...MATHML_ATTRIBUTES,
+					},
 					// 自己加的：保留代码块的语言标记，支持的阅读器可以据此高亮
 					allowedClasses: { code: ["language-*"] },
 				}),
