@@ -61,5 +61,11 @@ for svg in $(grep -o '/diagrams/[0-9a-f]*\.svg' dist/rss.xml | sort -u); do
 done
 echo "ok  feed diagrams ($want)"
 
+# feed 里的代码块：已换成朴素的 <pre><code>，不再有 Expressive Code 的逐行结构（行号会单独占一行）
+for feed in dist/rss.xml dist/atom.xml; do
+  grep -qE '<pre><code><div><div><div>|&lt;pre&gt;&lt;code&gt;&lt;div&gt;' "$feed" && err "$feed has unsimplified code blocks"
+done
+echo "ok  feed code blocks"
+
 [ $fail -eq 0 ] && echo "all checks passed"
 exit $fail

@@ -9,6 +9,8 @@ import { url } from "@utils/url-utils";
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import sanitizeHtml from "sanitize-html";
 // 自己加的：feed 里的流程图换成独立 SVG 文件（见 src/plugins/feed-diagrams.mjs）
+// 自己加的：feed 里的代码块换回朴素的 <pre><code>（见 src/plugins/feed-code-blocks.mjs）
+import { simplifyCodeBlocks } from "../plugins/feed-code-blocks.mjs";
 import { saveFeedDiagram } from "../plugins/feed-diagrams.mjs";
 import {
 	DIAGRAM_CONTAINER,
@@ -166,15 +168,24 @@ export async function renderFeedEntries(
 		}
 		const { Content } = await render(post);
 		const rawContent = await container.renderToString(Content);
-		const cleanedContent = replaceMermaidWithImages(
+		const withDiagrams = replaceMermaidWithImages(
 			stripInvalidXmlChars(rawContent),
 			post.data.title,
 		);
+		// 自己加的：Expressive Code 代码块换成朴素的 <pre><code>
+		const { html: cleanedContent, failed } = simplifyCodeBlocks(withDiagrams);
+		if (failed > 0) {
+			console.warn(
+				`[feed] 《${post.data.title}》里有 ${failed} 个代码块没能简化，feed 里会显示错乱（Expressive Code 的输出结构可能变了）`,
+			);
+		}
 		entries.push({
 			...base,
 			content: collapseFeedWhitespace(
 				sanitizeHtml(cleanedContent, {
 					allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
+					// 自己加的：保留代码块的语言标记，支持的阅读器可以据此高亮
+					allowedClasses: { code: ["language-*"] },
 				}),
 			),
 			isPasswordProtected: false,
