@@ -6,6 +6,16 @@
 
 对主题源码做过的修改、以及升级主题的步骤，见 [CUSTOMIZATIONS.md](./CUSTOMIZATIONS.md)。
 
+## 拉取项目（固定放在 `~/blog/astro`）
+
+仓库**必须放在 `~/blog/astro`**：写文章的 AI skill（`.agents/skills/blog-post-summary/`，见下面「AI 写文章」一节）里的路径和命令都按这个目录写，放到别处 skill 会认不到项目。任何新环境都用下面的命令拉取：
+
+```bash
+mkdir -p ~/blog
+git clone https://github.com/tracerZzz/tracerZzz.github.io.git ~/blog/astro
+cd ~/blog/astro
+```
+
 ## 本地运行
 
 需要 Node.js 22 和 pnpm（`npm install -g pnpm`）。
@@ -52,6 +62,10 @@ draft: false        # true 表示草稿，不会发布
 slug: git-commands   # 网址，只用小写字母、数字和连字符，不要带 /
 ---
 ```
+
+## AI 写文章
+
+`.agents/skills/blog-post-summary/SKILL.md` 是一个随仓库提交的 Agent skill：会话结束时说「写成博客」「总结成文章」，Agent 会按里面的规范（目录、front matter、写作要求、提交规则、交付命令）把会话主题写成文章并在本地提交。支持 `.agents/skills/` 的 Agent（如 Antigravity）在这个仓库里打开会话时会自动发现它，不需要额外安装；前提是仓库放在 `~/blog/astro`。改了 skill 要在 `CUSTOMIZATIONS.md` 里记一笔。
 
 ## 欢迎页
 

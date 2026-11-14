@@ -4,7 +4,9 @@
 
 - **基准版本**：Firefly v6.16.8，提交 `cd920b035b475fe9a6cd3a88afb42cf9440bb8a9`（2026-10-22）
 - **规则**：以后每改一次主题源码，都要更新这份清单，并把基准版本改成升级后的版本。
-- **规则**：只要改了博客的设定（主题、配置、欢迎页、部署等），都要同步更新博客文章《从 Hexo 迁移到 Astro》（`src/content/posts/blog/从Hexo迁移到Astro.md`）。
+- **规则**：只要改了博客的设定（主题、配置、欢迎页、部署、依赖、AI skill 等），都记在本文件里，本文件是博客设定变更的唯一记录，任何人或 Agent 接手时读它就能知道来龙去脉。
+  - 2026-11-14 之前的规则是「同时更新博客文章《从 Hexo 迁移到 Astro》」（`src/content/posts/blog/从Hexo迁移到Astro.md`），现已取消：那篇文章只记录迁移本身，之后不再跟着设定变更更新（文中第 604 行附近「同步更新这篇文章」的说法是旧规则），除非作者明确要求。
+- **规则**：仓库固定 clone 到 `~/blog/astro`（命令见 README「拉取项目」），`.agents/skills/` 里的 skill 按这个路径写。
 
 ## 一、主题源码的修改（升级时最容易冲突）
 
@@ -63,6 +65,7 @@
 - `scripts/migrate-hexo.py`：当初从 Hexo 迁移用的一次性脚本
 - `src/content/spec/about.md`：关于页（内容替换）
 - `README.md`、`CUSTOMIZATIONS.md`（本文件）
+- `.agents/skills/blog-post-summary/SKILL.md`：把会话主题写成博客文章并本地提交的 Agent skill（目录、front matter、写作要求、提交规则、交付命令）。随仓库提交，支持 `.agents/skills/` 的 Agent 在仓库里会自动发现；它要求仓库在 `~/blog/astro`，所以 README 里给了固定目录的 clone 命令。原版来自作者在别的环境用的 `.skill` 包，放进仓库时改了两处：第 1 步「申请文件夹 / 删除权限」改成「确认工作目录」（仓库就是工作区，不需要申请）；部署说明改准（GitHub Actions 只发布 GitHub Pages，ESA 按 `esa.jsonc` 自己构建）
 
 ## 四、删掉的主题文件
 
