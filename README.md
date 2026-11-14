@@ -14,7 +14,10 @@
 mkdir -p ~/blog
 git clone https://github.com/tracerZzz/tracerZzz.github.io.git ~/blog/astro
 cd ~/blog/astro
+git update-index --skip-worktree src/constants/lqips.json src/constants/github-card-data.json
 ```
+
+最后一行让 git 在本机忽略这两个文件的变更：它们是 `pnpm build` 开头的脚本生成的，每次构建都会变，不需要提交。这个设置只对当前这份 clone 有效，所以每次新 clone 都要运行一次。万一以后确实要提交它们，先运行 `git update-index --no-skip-worktree` 加上同样两个文件。
 
 ## 本地运行
 

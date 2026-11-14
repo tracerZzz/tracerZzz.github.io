@@ -54,7 +54,7 @@ slug: english-kebab-case   # 英文，决定网址 /posts/<slug>/
 
 - 在 `~/blog/astro` 用 git 只 `add` 本次相关的文件。
 - **提交信息用英文**，风格和仓库已有提交一致：动词开头的一句话，如 `Add post on ...`、`Fix ...`、`Update ...`。不同性质的改动（站点修复 与 新文章）分成不同的提交。
-- 不要提交 `src/constants/github-card-data.json`、`src/constants/lqips.json`，这两个是本地构建时自动生成的。
+- 不要提交 `src/constants/github-card-data.json`、`src/constants/lqips.json`，这两个是本地构建时自动生成的。按 README 设置过 `skip-worktree` 的话它们不会出现在 `git status` 里；如果出现了，说明这份 clone 还没设置，提醒用户运行 README「拉取项目」里的那条 `git update-index --skip-worktree` 命令。
 - 作者信息沿用仓库最近一次提交的作者（`git log -1 --format='%an <%ae>'`）。
 - 提交前先看 `git status -sb`，确认用户没有自己先提交过；已经提交或推送过就不要重复提交。
 - 不要改写已经推送过的提交（amend、rebase 之前先看 `git status -sb` 里有没有 `ahead`，只有还没推送的提交才能改）。

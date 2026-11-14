@@ -6,7 +6,7 @@
 - **规则**：以后每改一次主题源码，都要更新这份清单，并把基准版本改成升级后的版本。
 - **规则**：只要改了博客的设定（主题、配置、欢迎页、部署、依赖、AI skill 等），都记在本文件里，本文件是博客设定变更的唯一记录，任何人或 Agent 接手时读它就能知道来龙去脉。
   - 2026-11-14 之前的规则是「同时更新博客文章《从 Hexo 迁移到 Astro》」（`src/content/posts/blog/从Hexo迁移到Astro.md`），现已取消：那篇文章只记录迁移本身，之后不再跟着设定变更更新（文章里已同步改成新规则），除非作者明确要求。
-- **规则**：仓库固定 clone 到 `~/blog/astro`（命令见 README「拉取项目」），`.agents/skills/` 里的 skill 按这个路径写。
+- **规则**：仓库固定 clone 到 `~/blog/astro`（命令见 README「拉取项目」），`.agents/skills/` 里的 skill 按这个路径写。clone 之后还要对 `src/constants/lqips.json`、`github-card-data.json` 运行 `git update-index --skip-worktree`：这两个是构建时生成的文件，但主题仓库把它们提交进了 git，`.gitignore` 管不到，所以用这个只在本机生效的设置忽略它们的变更。没有用「取消跟踪 + `.gitignore`」，因为代码直接 `import` 它们，取消跟踪后新 clone 下来时文件不存在，`pnpm dev` 会报错，还得改主题的 `package.json` 来补空文件，不值得。
 
 ## 一、主题源码的修改（升级时最容易冲突）
 
