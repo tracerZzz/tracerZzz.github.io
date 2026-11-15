@@ -1,7 +1,8 @@
 ---
 title: 使用 Docker 与 sing-box 搭建高可用海外网络节点与双端分流方案
 published: 2026-11-15T02:45:00+08:00
-description: 承接上一篇 Mac 与 iPhone 共用 sing-box 走境外 eSIM 的分流方案，记录从选购日本东京 VPS、Debian 12 安全加固、用 Docker 部署 sing-box v1.14.4（VLESS + XTLS-Reality），到在双端配置中引入 selector 策略组实现自建节点与备用 eSIM 一键切换的完整过程与排坑复盘。
+updated: 2026-11-16T01:35:00+08:00
+description: 承接上一篇 Mac 与 iPhone 共用 sing-box 走境外 eSIM 的分流方案，记录从选购海外 VPS（日本东京 IIJ 与洛杉矶三网优化线路）、Debian 12 安全加固、用 Docker 部署 sing-box v1.14.4（VLESS + XTLS-Reality），到在双端配置中引入 selector 策略组实现多台自建节点与备用 eSIM 一键切换的完整过程与排坑复盘。
 tags:
   - sing-box
   - Docker
@@ -13,14 +14,16 @@ draft: false
 slug: self-hosted-sing-box-vless-reality-docker-guide
 ---
 
+> **2026-11-16 更新**：新增一台洛杉矶三网优化 VPS（直接复用东京节点的服务端目录与密钥部署），策略组升级为「洛杉矶主力 + 东京备用 + eSIM 兜底」三出口一键切换；同时定位并解决了服务端每隔 30 秒刷出 `mux connection closed: read frame header: EOF` 的问题（将拒绝境外 QUIC 的规则提到域名分流规则之前），并在第五节补充了完整排查过程与 `REALITY: processed invalid connection` 日志说明。
+
 在上一篇[《让 Mac 和 iPhone 指定网站走 eSIM：sing-box 分流实录》](/posts/mac-hotspot-split-routing/)里，我用一张按量计费的境外 eSIM 配合 `sing-box`，实现了 Mac（通过 iPhone 有线热点）和 iPhone 共用一份 iCloud 配置、只把指定境外网站分流给 eSIM。
 
 这套方案跑通之后，IP 纯净度确实很高，但日常开发重度依赖 Claude、ChatGPT、Gemini 和 GitHub，电脑端长期高频使用时暴露出两个不便：一是按量计费的漫游流量成本偏高，二是 Mac 上网必须一直插着手机开热点。
 
-因此这次的目标是在保留原有架构优点的基础上，把出口升级为「自建主力 + eSIM 备用」的双出口方案：
+因此这次的目标是在保留原有架构优点的基础上，把出口升级为「自建主力 + 备用节点 + eSIM 兜底」的多出口方案：
 
-1. **自建主力节点**：选购一台线路稳定、原生 IP 干净的日本东京 VPS，用 Docker 容器化部署 `sing-box v1.14.4`，与宿主机环境隔离，换机器时整目录拷走就能恢复。
-2. **双出口一键切换**：保留原有的境外 eSIM 作为热备出口，在 Mac 和 iPhone 共用的 `esim-split.json` 中引入 `selector`（策略组），默认走自建 VPS，遇到线路波动时可在客户端界面一键切回 eSIM，国内网站和其他流量照常直连走家里 Wi-Fi。
+1. **自建容器化节点**：选用日本东京 IIJ 与美国洛杉矶三网优化 VPS（下文以单台初始化为例，新增第二台只需整目录拷过去即可共用同一套凭证），用 Docker 容器化部署 `sing-box v1.14.4`，与宿主机环境隔离，换机器或扩容时几分钟就能恢复。
+2. **多出口一键切换**：保留原有的境外 eSIM 作为热备出口，在 Mac 和 iPhone 共用的 `esim-split.json` 中引入 `selector`（策略组），默认走洛杉矶三网优化 VPS（`us-la-vps`），遇到线路波动时可在客户端界面一键切到日本 VPS（`jp-vps`）或 `esim`，国内网站和其他流量照常直连走家里 Wi-Fi。
 3. **规则自动跟随更新**：继续使用社区维护的 `.srs` 二进制规则集，每 7 天经当前选中的境外出口自动更新，部署完成后长期不用手动维护。
 
 ## 一、核心概念简析
@@ -250,10 +253,11 @@ docker compose up -d
 
 ### 相比上一版改了什么
 
-1. **新增 `jp-vps` 出口与 `proxy-select` 策略组**：把原来的单一 `esim` 出口升级为 `proxy-select` 选择器，包含 `jp-vps`（默认主力）和 `esim`（备用，iPhone 上走蜂窝数据卡、Mac 上走 iPhone USB 有线热点）两个出口，在客户端界面可以一键切换。
-2. **DNS 与规则集下载全链路跟随策略组**：境外加密 DNS（`dns-proxy`）和规则集下载客户端（`proxy-http`）的 `detour` 都指向 `proxy-select`。这样不管当前选的是自建 VPS 还是 eSIM，DNS 解析和每周一次的规则集自动更新都会自动跟着当前出口走，平时在 Mac 上不插手机开热点也能独立工作。
+1. **新增双自建节点与 `proxy-select` 策略组**：把原来的单一 `esim` 出口升级为 `proxy-select` 选择器，包含 `us-la-vps`（洛杉矶三网优化主力）、`jp-vps`（日本东京 IIJ 备用，直接拷贝同一套服务端配置与密钥即可上线）和 `esim`（热备，iPhone 上走蜂窝数据卡、Mac 上走 iPhone USB 有线热点）三个出口，在客户端界面可以一键切换。
+2. **DNS 与规则集下载全链路跟随策略组**：境外加密 DNS（`dns-proxy`）和规则集下载客户端（`proxy-http`）的 `detour` 都指向 `proxy-select`。这样不管当前选的是洛杉矶 VPS、日本 VPS 还是 eSIM，DNS 解析和每周一次的规则集自动更新都会自动跟着当前出口走，平时在 Mac 上不插手机开热点也能独立工作。
 3. **DNS 统一拦截 `AAAA` 与 `HTTPS` 查询**：境外 eSIM 漫游只有 IPv4，而现代浏览器除了查 `AAAA` 记录，还会查 `HTTPS`（Type 65）记录从中读取 `ipv6hint` 或 HTTP/3 参数。第一条 DNS 规则把这两种查询统一用 `predefined` 返回空结果，强制所有连接走稳定的 IPv4。
-4. **冷启动规则集域名兜底**：在分流规则里，`github.com` 和 `githubusercontent.com` 写在远程规则集前面直接走 `proxy-select`。这样新设备第一次启动、本地还没有任何 `.srs` 规则集缓存时，去 GitHub 下载规则集的请求本身也能顺利走境外出口，不会陷入「下载规则集需要先加载规则集」的死锁。
+4. **把拒绝境外 QUIC 放到域名分流前面**：原来拒绝境外 `UDP 443`（QUIC / HTTP/3）的规则排在最后，但 `sniff` 会从 QUIC 握手里提前读出 `google.com` 等域名，导致连接先命中按域名分流的规则、经 `xudp` 走 VPS 并在空闲 30 秒后刷出 `EOF` 日志。把这条规则提到按域名分流前面后，浏览器会立刻改用 TCP（HTTP/2）并照常按域名分流，既省去了 UDP 套 TCP 的开销，也消除了服务端 30 秒超时日志。
+5. **冷启动规则集域名兜底**：在分流规则里，`github.com` 和 `githubusercontent.com` 写在远程规则集前面直接走 `proxy-select`。这样新设备第一次启动、本地还没有任何 `.srs` 规则集缓存时，去 GitHub 下载规则集的请求本身也能顺利走境外出口，不会陷入「下载规则集需要先加载规则集」的死锁。
 
 ### 完整客户端配置（`esim-split.json`）
 
@@ -263,8 +267,9 @@ docker compose up -d
 //  放在「iCloud 云盘 → sing-box」里，两台设备都选 iCloud 类型的配置读取它
 //
 //  效果：
-//    Claude、ChatGPT、GitHub、Google、常用境外网站 → 走 proxy-select（默认自建日本 VPS，可界面一键切 eSIM）
+//    Claude、ChatGPT、GitHub、Google、常用境外网站 → 走 proxy-select（默认自建洛杉矶三网优化 VPS，可界面一键切日本 VPS 或 eSIM）
 //    国内网站和其他所有流量 → 走默认网络（家里 Wi-Fi / 本地蜂窝）
+//    发往境外 IP 的 QUIC（HTTP/3）一律拒绝，浏览器和 App 会自动改用 TCP
 //
 //  改完这个文件后，要在 sing-box 里把开关关掉再打开才会生效
 //  需要 sing-box 1.14 及以上（支持 // 注释和 http_clients 写法）
@@ -280,7 +285,7 @@ docker compose up -d
   "dns": {
     "servers": [
       {
-        // 境外 DNS（Cloudflare 的加密 DNS），经当前选中的境外出口（jp-vps 或 esim）发出
+        // 境外 DNS（Cloudflare 的加密 DNS），经当前选中的境外出口（us-la-vps、jp-vps 或 esim）发出
         // 这样拿到的是境外网络视角下真实可用的地址，且切节点时自动跟随
         "type": "https",
         "tag": "dns-proxy",
@@ -296,7 +301,7 @@ docker compose up -d
     ],
     "rules": [
       {
-        // 所有域名都只用 IPv4（拦截 AAAA 和可能带 ipv6hint 的 HTTPS 记录）：
+        // 所有域名都只返回 IPv4 地址（拦掉 AAAA 和可能带 ipv6hint 的 HTTPS 记录）：
         //   境外 eSIM 漫游只有 IPv4，拿到 IPv6 地址会连不上
         //   统一用 IPv4 可以保证所有流量稳定经过分流规则
         "query_type": [
@@ -322,7 +327,7 @@ docker compose up -d
   },
 
   // ---------- 下载规则集用的 HTTP 客户端 ----------
-  // 规则集托管在 GitHub 上，经当前选中的境外出口（jp-vps 或 esim）下载，保证 7 天自动更新不失败
+  // 规则集托管在 GitHub 上，经当前选中的境外出口下载，保证 7 天自动更新不失败
   "http_clients": [
     {
       "tag": "proxy-http",
@@ -357,23 +362,26 @@ docker compose up -d
       "tag": "default"
     },
     {
-      // 2. 策略组选择器：在客户端界面可一键切换 jp-vps 或 esim
+      // 2. 策略组选择器：在客户端界面可一键切换 us-la-vps、jp-vps 或 esim
       "type": "selector",
       "tag": "proxy-select",
       "outbounds": [
+        "us-la-vps",
         "jp-vps",
         "esim"
       ],
-      "default": "jp-vps",
-      // 切换出口时立即断开旧出口的残留长连接，实现无感秒切
+      "default": "us-la-vps",
+      // 切换出口时立即断开旧出口上残留的长连接，新请求马上走新出口
       "interrupt_exist_connections": true
     },
     {
-      // 3. 主力出口：自建日本东京 IIJ VPS（VLESS + XTLS-Reality）
-      // 注意：已启用 Vision 流控，切勿再添加 multiplex 字段，否则会触发空闲 EOF 断流
+      // 3. 主力出口：洛杉矶三网优化 VPS（VLESS + XTLS-Reality）
+      // 不需要 multiplex：Vision 流控本身不配合多路复用，保持默认不写即可
+      // UDP 默认用 xudp 封装在 TCP 里转发；服务端日志里偶尔出现的
+      // 「mux connection closed: read frame header: EOF」是 UDP 会话被客户端关闭（切节点、切网络、休眠），属正常现象
       "type": "vless",
-      "tag": "jp-vps",
-      "server": "<你的VPS_IP>",
+      "tag": "us-la-vps",
+      "server": "<洛杉矶VPS_IP>",
       "server_port": 443,
       "uuid": "填入生成的UUID",
       "flow": "xtls-rprx-vision",
@@ -392,7 +400,30 @@ docker compose up -d
       }
     },
     {
-      // 4. 备用出口：直连，但只走「蜂窝」或「有线」网络（eSIM 漫游流量）
+      // 4. 备用出口：自建日本东京 IIJ VPS（VLESS + XTLS-Reality）
+      //    和洛杉矶共用同一套 UUID 与 Reality 密钥（服务端配置是整目录拷过去的）
+      "type": "vless",
+      "tag": "jp-vps",
+      "server": "<日本VPS_IP>",
+      "server_port": 443,
+      "uuid": "填入生成的UUID",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "填入生成的Reality_PublicKey",
+          "short_id": "0123456789abcdef"
+        }
+      }
+    },
+    {
+      // 5. 备用出口：直连，但只走「蜂窝」或「有线」网络（eSIM 漫游流量）
       //   iPhone：走蜂窝数据（数据卡设为 eSIM）
       //   Mac：走有线网卡（iPhone 用数据线开的热点在 Mac 上识别为有线网卡）
       //   default 策略：只用这两类网络，它们不可用时不会偷偷改走 Wi-Fi
@@ -426,39 +457,11 @@ docker compose up -d
         "outbound": "default"
       },
       {
-        // 4. 冷启动兜底：首次启动本地还没有规则集缓存时，让 GitHub 域名直接走境外出口完成规则集下载
-        "domain_suffix": [
-          "githubusercontent.com",
-          "github.com"
-        ],
-        "outbound": "proxy-select"
-      },
-      {
-        // 5. Claude、ChatGPT、境外网站、GitHub、Google 走策略组（默认 jp-vps）
-        //    Steam 不用单独写：商店和社区在境外网站列表里，下载域名不在列表里，会自动走 Wi-Fi
-        "rule_set": [
-          "anthropic",
-          "openai",
-          "overseas-list",
-          "github",
-          "google"
-        ],
-        "outbound": "proxy-select"
-      },
-      {
-        // 6. 只有 IP 的连接：按这几家服务的 IP 段兜底，也走策略组
-        "rule_set": [
-          "google-ip",
-          "telegram-ip",
-          "twitter-ip",
-          "facebook-ip"
-        ],
-        "outbound": "proxy-select"
-      },
-      {
-        // 7. 发往境外 IP 的 QUIC（HTTP/3，UDP 443）一律拒绝
-        //    QUIC 有时读不出域名，会漏到 Wi-Fi；拒绝后 App 会立刻改用 TCP，
-        //    TCP 能读出域名，就能按上面的规则分流。国内 IP 的 QUIC 不受影响
+        // 4. 发往境外 IP 的 QUIC（HTTP/3，UDP 443）一律拒绝，国内 IP 的 QUIC 不受影响
+        //    必须放在按域名分流的规则前面：嗅探能从 QUIC 握手里读出域名，
+        //    如果排在后面，Google、YouTube 的 QUIC 会先命中第 6 条，经 xudp 走 VPS，
+        //    空闲 30 秒后被客户端关闭，服务端就会刷「read frame header: EOF」
+        //    拒绝后浏览器和 App 会立刻改用 TCP（HTTP/2），照样按域名分流，而且比 UDP 套 TCP 更稳
         "type": "logical",
         "mode": "and",
         "rules": [
@@ -472,6 +475,36 @@ docker compose up -d
           }
         ],
         "action": "reject"
+      },
+      {
+        // 5. 冷启动兜底：首次启动本地还没有规则集缓存时，让 GitHub 域名直接走境外出口完成规则集下载
+        "domain_suffix": [
+          "githubusercontent.com",
+          "github.com"
+        ],
+        "outbound": "proxy-select"
+      },
+      {
+        // 6. Claude、ChatGPT、境外网站、GitHub、Google 走策略组（默认 us-la-vps）
+        //    Steam 不用单独写：商店和社区在境外网站列表里，下载域名不在列表里，会自动走 Wi-Fi
+        "rule_set": [
+          "anthropic",
+          "openai",
+          "overseas-list",
+          "github",
+          "google"
+        ],
+        "outbound": "proxy-select"
+      },
+      {
+        // 7. 只有 IP 的连接：按这几家服务的 IP 段兜底，也走策略组
+        "rule_set": [
+          "google-ip",
+          "telegram-ip",
+          "twitter-ip",
+          "facebook-ip"
+        ],
+        "outbound": "proxy-select"
       }
     ],
 
@@ -542,7 +575,7 @@ docker compose up -d
         "update_interval": "168h0m0s"
       },
       {
-        // 国内 IP 段，用在最后一条 QUIC 规则里
+        // 国内 IP 段，用在第 4 条 QUIC 规则里
         "type": "remote",
         "tag": "cn-ip",
         "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs",
@@ -554,9 +587,9 @@ docker compose up -d
     "final": "default",
     // 自动找到真实网卡，sing-box 自己发出的连接直接绑定到真实网卡，不会又绕回虚拟网卡
     "auto_detect_interface": true,
-    // sing-box 自己需要解析域名时（比如以后把 jp-vps 地址换成域名），默认用国内 DNS
+    // sing-box 自己需要解析域名时（比如以后把 VPS 地址换成域名），默认用国内 DNS
     "default_domain_resolver": "dns-cn",
-    // 下载规则集时跟随当前选中的境外出口（jp-vps 或 esim）
+    // 下载规则集时跟随当前选中的境外出口（us-la-vps、jp-vps 或 esim）
     "default_http_client": "proxy-http"
   },
 
@@ -577,22 +610,25 @@ docker compose up -d
 1. **`sing-box v1.14` 废弃字段报错（`legacy domain strategy options is deprecated`）**
    - **原因**：从 `v1.12` 到 `v1.14`，旧版写在 `outbounds` 里的 `domain_strategy` 已被彻底移除，强行使用会导致进程启动即 `FATAL` 退出。
    - **解决**：将解析策略统一放到顶层 `dns` 模块的 `"strategy": "prefer_ipv4"`，并在 `route` 中显式声明 `"default_domain_resolver": "local-dns"`。
-2. **Vision 流控与 Mux 多路复用的冲突（`mux connection closed: read frame header: EOF`）**
-   - **原因**：`xtls-rprx-vision` 本身已经针对高并发流控做了处理，如果在客户端 `vless` 出站里额外开启 `multiplex`（多路复用），不仅不会提升性能，反而会在连接空闲约 30 秒后触发底层连接重置，并在日志里持续刷出 `EOF` 报错。
-   - **解决**：客户端 `vless` 出站中保持默认关闭 `multiplex`，只保留 `"flow": "xtls-rprx-vision"`。
+2. **服务端频繁报 `mux connection closed: read frame header: EOF`（其实是 QUIC 规则顺序问题）**
+   - **原因**：起初看到日志里带 `mux` 且持续时间整齐卡在 `30.6s`–`30.9s`，一度以为是客户端多路复用冲突。但核查后发现客户端根本没开 `multiplex`——真正的原因是 `sing-box` 的 VLESS 出站默认用 `xudp`（底层按 mux 帧封装 UDP）转发 UDP；而客户端原本把「拒绝境外 QUIC（`UDP 443`）」放在规则第 7 条，前面第 5 条按域名分流时，`sniff` 已经从 QUIC 握手里读出了 `google.com`、`youtube.com` 等域名，导致浏览器的 HTTP/3 流量先命中了域名规则、经 `xudp` 进了 VPS。`sing-box` 客户端对 QUIC/DTLS 类型的 UDP 会话设置了 30 秒空闲超时，超时一到客户端直接关闭底层连接，服务端正在等待下一帧时就记一条 `read frame header: EOF`（此外切节点、切网络或休眠关闭长连接时也会出现个别持久会话的 EOF，属于正常现象）。
+   - **解决**：把拒绝境外 QUIC 的规则提到第 4 条（放在所有按域名分流的规则前面）。这样浏览器访问境外网站时会直接退回 TCP（HTTP/2）并照常按域名分流，既消除了服务端 30 秒刷屏的 `EOF` 日志，也避免了 UDP 套 TCP 在丢包时的卡顿。
 3. **多余的外部隧道反而拖累原生 IP**
    - **原因**：起初担心机房 IP 通不过部分 AI 服务的地区检测，在服务端额外挂了一层外部隧道，结果因为握手延迟叠加和出口波动，频繁触发 30 秒请求超时，而且部分直出流量与隧道出口混用反而导致地区判定不一致。实测发现这台东京 IIJ 原生 IP 本身就能直接顺畅访问 Gemini、Claude 等全部服务，去掉中间层并清理浏览器对应站点的 Cookie 缓存后，延迟大幅下降，超时断流也彻底消失。
 4. **客户端 `detour` 解耦与标签名闭环检查**
    - **原因**：最初改客户端配置时，`dns-proxy` 和 `http_clients` 的 `detour` 还硬编码指在 `esim` 上，结果 Mac 没插手机开热点时境外域名完全无法解析；另外修改 DNS 服务器标签名时，如果 `dns.servers[].tag` 与 `dns.rules[].server` 名字不一致也会报错。
    - **解决**：把两处 `detour` 统一改指向 `proxy-select` 策略组，让 DNS 查询和规则集下载完全跟随当前选中的出口，并逐一核对了所有 `tag` 的引用闭环。
+5. **日志里出现陌生 IP 的 `TLS handshake: REALITY: processed invalid connection`**
+   - **原因**：把 30 秒 EOF 噪音清掉后，日志里偶尔会冒出来自陌生公网 IP（如云厂商扫描器、证书爬虫）的 `REALITY: processed invalid connection` 记录。这是因为 `443` 是公开端口，任何主机都能来探测，而对方没有正确的 Reality 凭证（UUID、`short_id`、密钥），`sing-box` 按设计把这类未通过校验的连接原样转发给了握手目标 `www.apple.com`。
+   - **解决**：这是 Reality 正常工作的证明，**不需要任何处理**（不要为了屏蔽它把 `log.level` 调高到 `error` 以上，也不要用防火墙限制仅自己 IP 访问，否则家宽/手机 IP 变化后自己也会连不上）。
 
-## 六、换机与迁移快速操作清单
+## 六、换机与扩容快速操作清单
 
-常规 VPS 套餐不支持跨机房直接克隆系统镜像，不过得益于 Docker 部署，服务端所有状态都收敛在 `/root/sing-box` 目录下。日后换新 VPS 或换新电脑，按下面的步骤几分钟就能恢复：
+常规 VPS 套餐不支持跨机房直接克隆系统镜像，不过得益于 Docker 部署，服务端所有状态都收敛在 `/root/sing-box` 目录下。日后新增节点（如这次在原有日本节点外新增洛杉矶三网优化节点）、更换 VPS 或换新电脑，按下面的步骤几分钟就能完成：
 
-### 1. 更换 VPS
+### 1. 新增或更换 VPS
 
-1. **在本地 Mac 备份旧 VPS 配置**：
+1. **在本地 Mac 备份已有 VPS 配置**：
    ```bash
    scp -r jp-vps:/root/sing-box ~/Desktop/sing-box-backup
    ```
@@ -615,7 +651,7 @@ docker compose up -d
    scp -P 52222 -r ~/Desktop/sing-box-backup root@<新VPS_IP>:/root/sing-box
    ssh -p 52222 root@<新VPS_IP> "cd /root/sing-box && docker compose up -d"
    ```
-4. **更新客户端地址**：把 iCloud 里 `esim-split.json` 中 `jp-vps` 的 `"server"` 改成新 VPS 的 IP（原有的 `uuid` 和 `public_key` 都直接沿用，无需重新生成）。如果给 VPS 绑了自己的域名并托管在 Cloudflare，只需在 Cloudflare 里把 A 记录指向新 IP 即可免改客户端配置——**注意 Cloudflare 的 A 记录必须设为「仅 DNS（灰色云朵）」，不能开启橙色云朵 CDN 代理**，否则无法转发 Reality 握手流量。
+4. **更新客户端地址**：把 iCloud 里 `esim-split.json` 中对应节点（如 `us-la-vps` 或 `jp-vps`）的 `"server"` 改成新 VPS 的 IP（两台机器共用同一套服务端目录，原有的 `uuid` 和 `public_key` 直接沿用，无需重新生成）。如果给 VPS 绑了自己的域名并托管在 Cloudflare，只需在 Cloudflare 里把 A 记录指向新 IP 即可免改客户端配置——**注意 Cloudflare 的 A 记录必须设为「仅 DNS（灰色云朵）」，不能开启橙色云朵 CDN 代理**，否则无法转发 Reality 握手流量。
 
 ### 2. 更换新 Mac（恢复 SSH 免密登录）
 
