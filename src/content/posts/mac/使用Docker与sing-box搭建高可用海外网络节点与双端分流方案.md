@@ -1,7 +1,7 @@
 ---
 title: 使用 Docker 与 sing-box 搭建高可用海外网络节点与双端分流方案
 published: 2026-11-15T02:45:00+08:00
-updated: 2026-11-16T10:15:00+08:00
+updated: 2026-11-16T14:05:00+08:00
 description: 承接上一篇 Mac 与 iPhone 共用 sing-box 走境外 eSIM 的分流方案，记录从选购海外 VPS（日本东京 IIJ 与洛杉矶三网优化线路）、Debian 12 安全加固、用 Docker 部署 sing-box v1.14.4（VLESS + XTLS-Reality），到在双端配置中引入 selector 策略组实现多台自建节点与备用 eSIM 一键切换的完整过程与排坑复盘。
 tags:
   - sing-box
@@ -14,7 +14,7 @@ draft: false
 slug: self-hosted-sing-box-vless-reality-docker-guide
 ---
 
-> **2026-11-16 更新**：新增一台洛杉矶三网优化 VPS（直接复用东京节点的服务端目录与密钥部署），策略组升级为「洛杉矶主力 + 东京备用 + eSIM 兜底」三出口一键切换；同时定位并解决了服务端每隔 30 秒刷出 `mux connection closed: read frame header: EOF` 的问题（将拒绝境外 QUIC 的规则提到域名分流规则之前），并在第五节补充了完整排查过程与 `REALITY: processed invalid connection` 日志说明；同时在第一节新增了多端 TUN 网卡分流与美西（GIA / 9929 / CMIN2 三网优化）vs 日本（普通骨干网）回程链路差异的全链路架构图。
+> **2026-11-16 更新**：新增一台洛杉矶三网优化 VPS（直接复用东京节点的服务端目录与密钥部署），策略组升级为「洛杉矶主力 + 东京备用 + eSIM 兜底」三出口一键切换；定位并解决了服务端每隔 30 秒刷出 `mux connection closed: read frame header: EOF` 的问题（将拒绝境外 QUIC 的规则提到域名分流规则之前），并在第五节补充了完整排查过程与 `REALITY: processed invalid connection` 日志说明；在第一节新增了多端 TUN 网卡分流与美西（GIA / 9929 / CMIN2 三网优化）vs 日本（普通骨干网）回程链路差异的全链路架构图；在第二节和第六节补充了 `systemd-journald` 系统日志限额配置（与 Docker 日志轮转配合防止小容量 SSD 被打满）；以及在客户端配置中新增 `SVCB` 记录拦截与 6 大类开发/鉴权/静态资源域名后缀补盲规则（第 6.2 条）。
 
 在上一篇[《让 Mac 和 iPhone 指定网站走 eSIM：sing-box 分流实录》](/posts/mac-hotspot-split-routing/)里，我用一张按量计费的境外 eSIM 配合 `sing-box`，实现了 Mac（通过 iPhone 有线热点）和 iPhone 共用一份 iCloud 配置、只把指定境外网站分流给 eSIM。
 
@@ -150,6 +150,39 @@ curl -fsSL https://get.docker.com | sh
 ```
 
 确认 `timedatectl status` 输出中 `System clock synchronized: yes` 且时区为 `Asia/Shanghai` 即可。
+
+### 4. 限制 `systemd-journald` 系统日志体积（防止小硬盘被打满）
+
+入门级 VPS 的硬盘通常只有 15GB 左右，而公网机器每天都会产生大量 SSH 扫描拦截、内核与服务日志。`systemd-journald` 默认最多可占用磁盘空间的 10%，日积月累很容易配合镜像缓存把小硬盘塞满。
+
+这里用独立配置目录 `/etc/systemd/journald.conf.d/` 写入限额规则（不直接改主配置文件 `/etc/systemd/journald.conf`，后续系统升级不会产生配置冲突）：
+
+```bash
+mkdir -p /etc/systemd/journald.conf.d
+
+cat << 'EOF' > /etc/systemd/journald.conf.d/99-size-limit.conf
+[Journal]
+Storage=persistent
+SystemMaxUse=200M
+SystemKeepFree=500M
+SystemMaxFileSize=20M
+MaxRetentionSec=14day
+EOF
+
+systemctl restart systemd-journald
+journalctl --vacuum-size=200M
+```
+
+各参数含义：
+
+- `Storage=persistent`：日志持久化保存在 `/var/log/journal`；
+- `SystemMaxUse=200M`：系统日志最多占用 200MB 磁盘空间；
+- `SystemKeepFree=500M`：至少给磁盘预留 500MB 可用空间；
+- `SystemMaxFileSize=20M`：单个日志文件最大 20MB，达到后自动轮转；
+- `MaxRetentionSec=14day`：只保留最近 14 天的记录；
+- `journalctl --vacuum-size=200M`：立即把现有历史日志收缩到 200MB 以内。
+
+加上下一节 `docker-compose.yml` 里给容器日志设的 `60MB` 上限（`20m × 3`），宿主机系统日志与容器日志加起来最多只占约 `260MB`，彻底杜绝日志把磁盘打满。
 
 ## 三、服务端 Docker 部署（sing-box v1.14.4）
 
@@ -296,9 +329,10 @@ docker compose up -d
 
 1. **新增双自建节点与 `proxy-select` 策略组**：把原来的单一 `esim` 出口升级为 `proxy-select` 选择器，包含 `us-la-vps`（洛杉矶三网优化主力）、`jp-vps`（日本东京 IIJ 备用，直接拷贝同一套服务端配置与密钥即可上线）和 `esim`（热备，iPhone 上走蜂窝数据卡、Mac 上走 iPhone USB 有线热点）三个出口，在客户端界面可以一键切换。
 2. **DNS 与规则集下载全链路跟随策略组**：境外加密 DNS（`dns-proxy`）和规则集下载客户端（`proxy-http`）的 `detour` 都指向 `proxy-select`。这样不管当前选的是洛杉矶 VPS、日本 VPS 还是 eSIM，DNS 解析和每周一次的规则集自动更新都会自动跟着当前出口走，平时在 Mac 上不插手机开热点也能独立工作。
-3. **DNS 统一拦截 `AAAA` 与 `HTTPS` 查询**：境外 eSIM 漫游只有 IPv4，而现代浏览器除了查 `AAAA` 记录，还会查 `HTTPS`（Type 65）记录从中读取 `ipv6hint` 或 HTTP/3 参数。第一条 DNS 规则把这两种查询统一用 `predefined` 返回空结果，强制所有连接走稳定的 IPv4。
+3. **DNS 统一拦截 `AAAA`、`HTTPS` 与 `SVCB` 查询（显式返回 `rcode: NOERROR`）**：境外 eSIM 漫游只有 IPv4，而现代浏览器和部分客户端除了查 `AAAA` 记录，还会查 `HTTPS`（Type 65）和 `SVCB`（Type 64 服务绑定记录）——后者与 `HTTPS` 同样可能携带 `ipv6hint` 或 HTTP/3 参数，导致客户端跳过常规 A 记录或尝试直连 IPv6/QUIC。第一条 DNS 规则将这三种查询统一用 `predefined` 并显式返回 `"rcode": "NOERROR"` 空响应，强制所有连接走稳定的 IPv4。
 4. **把拒绝境外 QUIC 放到域名分流前面**：原来拒绝境外 `UDP 443`（QUIC / HTTP/3）的规则排在最后，但 `sniff` 会从 QUIC 握手里提前读出 `google.com` 等域名，导致连接先命中按域名分流的规则、经 `xudp` 走 VPS 并在空闲 30 秒后刷出 `EOF` 日志。把这条规则提到按域名分流前面后，浏览器会立刻改用 TCP（HTTP/2）并照常按域名分流，既省去了 UDP 套 TCP 的开销，也消除了服务端 30 秒超时日志。
 5. **冷启动规则集域名兜底**：在分流规则里，`github.com` 和 `githubusercontent.com` 写在远程规则集前面直接走 `proxy-select`。这样新设备第一次启动、本地还没有任何 `.srs` 规则集缓存时，去 GitHub 下载规则集的请求本身也能顺利走境外出口，不会陷入「下载规则集需要先加载规则集」的死锁。
+6. **新增社区精选域名后缀补盲（规则 6.2）**：社区 `gfw.srs` 规则集并不覆盖所有日常开发与海外常用服务。新配置将第 6 条分流规则拆分为 `6.1`（原有 5 个社区 `rule_set`）与 `6.2`（53 个高频域名后缀补盲），把不在 `gfw.srs` 列表里、但日常高频遇到的容器与语言包管理器（Docker、Quay、PyPI、npm、Crates、Homebrew 等）、公共静态 CDN 与 Vercel/Cloudflare Pages 等托管平台、StackExchange 静态资源与 Auth0/Clerk 第三方登录鉴权（防止主站走 VPS 而登录组件走直连导致白屏或鉴权分裂）、AI 工具链（Hugging Face、Ollama、OpenRouter、Cursor、JetBrains 等）、《饥荒》Klei 联机服务、`testflight.apple.com` 以及 `ipinfo.io`/`ping0.cc` 等 IP 自检站（防止自检时误走直连以为分流未生效）统一纳入 `proxy-select`。
 
 ### 完整客户端配置（`esim-split.json`）
 
@@ -342,14 +376,16 @@ docker compose up -d
     ],
     "rules": [
       {
-        // 所有域名都只返回 IPv4 地址（拦掉 AAAA 和可能带 ipv6hint 的 HTTPS 记录）：
-        //   境外 eSIM 漫游只有 IPv4，拿到 IPv6 地址会连不上
+        // 所有域名都只返回 IPv4 地址（拦掉 AAAA、HTTPS 与 SVCB 记录，显式返回 NOERROR 空结果）：
+        //   境外 eSIM 漫游只有 IPv4，拿到 IPv6 地址或服务绑定参数会连不上
         //   统一用 IPv4 可以保证所有流量稳定经过分流规则
         "query_type": [
           "AAAA",
-          "HTTPS"
+          "HTTPS",
+          "SVCB"
         ],
-        "action": "predefined"
+        "action": "predefined",
+        "rcode": "NOERROR"
       },
       {
         // 指定境外网站用境外 DNS 解析，拿到境外网络视角下可用的地址
@@ -500,7 +536,7 @@ docker compose up -d
       {
         // 4. 发往境外 IP 的 QUIC（HTTP/3，UDP 443）一律拒绝，国内 IP 的 QUIC 不受影响
         //    必须放在按域名分流的规则前面：嗅探能从 QUIC 握手里读出域名，
-        //    如果排在后面，Google、YouTube 的 QUIC 会先命中第 6 条，经 xudp 走 VPS，
+        //    如果排在后面，Google、YouTube 的 QUIC 会先命中第 6.1 条，经 xudp 走 VPS，
         //    空闲 30 秒后被客户端关闭，服务端就会刷「read frame header: EOF」
         //    拒绝后浏览器和 App 会立刻改用 TCP（HTTP/2），照样按域名分流，而且比 UDP 套 TCP 更稳
         "type": "logical",
@@ -526,14 +562,79 @@ docker compose up -d
         "outbound": "proxy-select"
       },
       {
-        // 6. Claude、ChatGPT、境外网站、GitHub、Google 走策略组（默认 us-la-vps）
-        //    Steam 不用单独写：商店和社区在境外网站列表里，下载域名不在列表里，会自动走 Wi-Fi
+        // 6.1 Claude、ChatGPT、境外网站、GitHub、Google 走策略组（默认 us-la-vps）
+        //     Steam 不用单独写：商店和社区在境外网站列表里，下载域名不在列表里，会自动走 Wi-Fi
         "rule_set": [
           "anthropic",
           "openai",
           "overseas-list",
           "github",
           "google"
+        ],
+        "outbound": "proxy-select"
+      },
+      {
+        // 6.2 社区精选补盲：不在 gfw.srs 中，但直连必卡/鉴权分裂/测试必用的后缀
+        "domain_suffix": [
+          // --- 容器、包管理与语言工具链 ---
+          "docker.com",
+          "docker.io",
+          "quay.io",
+          "lscr.io",
+          "k8s.io",
+          "pypi.org",
+          "pythonhosted.org",
+          "npmjs.org",
+          "npmjs.com",
+          "yarnpkg.com",
+          "nodejs.org",
+          "crates.io",
+          "pkg.go.dev",
+          "sum.golang.org",
+          "brew.sh",
+          "gitlab.com",
+          // --- 公共静态 CDN、托管平台与边缘存储 ---
+          "jsdelivr.net",
+          "unpkg.com",
+          "cdnjs.cloudflare.com",
+          "vercel.app",
+          "pages.dev",
+          "netlify.app",
+          "workers.dev",
+          "r2.dev",
+          "gravatar.com",
+          // --- StackExchange 静态资源与海外登录鉴权 (防半截直连白屏) ---
+          "sstatic.net",
+          "stackexchange.com",
+          "superuser.com",
+          "askubuntu.com",
+          "auth0.com",
+          "clerk.com",
+          // --- AI 平台、模型仓库与 IDE 工具 ---
+          "huggingface.co",
+          "hf.co",
+          "ollama.com",
+          "openrouter.ai",
+          "groq.com",
+          "perplexity.ai",
+          "cursor.sh",
+          "cursor.com",
+          "jetbrains.com",
+          "vscode-cdn.net",
+          // --- 笔记协作、游戏联机与 Apple 美区 ---
+          "notion.so",
+          "notion.site",
+          "notion-static.com",
+          "figma.com",
+          "klei.com",
+          "kleientertainment.com",
+          "testflight.apple.com",
+          // --- IP 检查站 (防自检时误走直连以为分流未生效) ---
+          "ipinfo.io",
+          "ipsb.com",
+          "ip.sb",
+          "ping0.cc",
+          "scamalytics.com"
         ],
         "outbound": "proxy-select"
       },
@@ -673,7 +774,7 @@ docker compose up -d
    ```bash
    scp -r jp-vps:/root/sing-box ~/Desktop/sing-box-backup
    ```
-2. **初始化新 VPS 环境**（先用 root 登录新机器，开启 NTP 与东八区时区、安装 Docker、开启 BBR 并配置防火墙）：
+2. **初始化新 VPS 环境**（先用 root 登录新机器，开启 NTP 与东八区时区、安装 Docker、开启 BBR、配置防火墙并限制系统日志体积）：
    ```bash
    timedatectl set-ntp true && timedatectl set-timezone Asia/Shanghai
    apt update && apt install -y curl ufw
@@ -683,6 +784,16 @@ docker compose up -d
    net.ipv4.tcp_congestion_control=bbr
    EOF
    sysctl -p
+   mkdir -p /etc/systemd/journald.conf.d
+   cat << 'EOF' > /etc/systemd/journald.conf.d/99-size-limit.conf
+   [Journal]
+   Storage=persistent
+   SystemMaxUse=200M
+   SystemKeepFree=500M
+   SystemMaxFileSize=20M
+   MaxRetentionSec=14day
+   EOF
+   systemctl restart systemd-journald && journalctl --vacuum-size=200M
    ufw default deny incoming && ufw default allow outgoing
    ufw allow 443/tcp && ufw allow 443/udp
    ```
