@@ -1,7 +1,7 @@
 ---
 title: 使用 Docker 与 sing-box 搭建高可用海外网络节点与双端分流方案
 published: 2026-11-15T02:45:00+08:00
-updated: 2026-11-16T01:35:00+08:00
+updated: 2026-11-16T10:15:00+08:00
 description: 承接上一篇 Mac 与 iPhone 共用 sing-box 走境外 eSIM 的分流方案，记录从选购海外 VPS（日本东京 IIJ 与洛杉矶三网优化线路）、Debian 12 安全加固、用 Docker 部署 sing-box v1.14.4（VLESS + XTLS-Reality），到在双端配置中引入 selector 策略组实现多台自建节点与备用 eSIM 一键切换的完整过程与排坑复盘。
 tags:
   - sing-box
@@ -14,7 +14,7 @@ draft: false
 slug: self-hosted-sing-box-vless-reality-docker-guide
 ---
 
-> **2026-11-16 更新**：新增一台洛杉矶三网优化 VPS（直接复用东京节点的服务端目录与密钥部署），策略组升级为「洛杉矶主力 + 东京备用 + eSIM 兜底」三出口一键切换；同时定位并解决了服务端每隔 30 秒刷出 `mux connection closed: read frame header: EOF` 的问题（将拒绝境外 QUIC 的规则提到域名分流规则之前），并在第五节补充了完整排查过程与 `REALITY: processed invalid connection` 日志说明。
+> **2026-11-16 更新**：新增一台洛杉矶三网优化 VPS（直接复用东京节点的服务端目录与密钥部署），策略组升级为「洛杉矶主力 + 东京备用 + eSIM 兜底」三出口一键切换；同时定位并解决了服务端每隔 30 秒刷出 `mux connection closed: read frame header: EOF` 的问题（将拒绝境外 QUIC 的规则提到域名分流规则之前），并在第五节补充了完整排查过程与 `REALITY: processed invalid connection` 日志说明；同时在第一节新增了多端 TUN 网卡分流与美西（GIA / 9929 / CMIN2 三网优化）vs 日本（普通骨干网）回程链路差异的全链路架构图。
 
 在上一篇[《让 Mac 和 iPhone 指定网站走 eSIM：sing-box 分流实录》](/posts/mac-hotspot-split-routing/)里，我用一张按量计费的境外 eSIM 配合 `sing-box`，实现了 Mac（通过 iPhone 有线热点）和 iPhone 共用一份 iCloud 配置、只把指定境外网站分流给 eSIM。
 
@@ -26,7 +26,48 @@ slug: self-hosted-sing-box-vless-reality-docker-guide
 2. **多出口一键切换**：保留原有的境外 eSIM 作为热备出口，在 Mac 和 iPhone 共用的 `esim-split.json` 中引入 `selector`（策略组），默认走洛杉矶三网优化 VPS（`us-la-vps`），遇到线路波动时可在客户端界面一键切到日本 VPS（`jp-vps`）或 `esim`，国内网站和其他流量照常直连走家里 Wi-Fi。
 3. **规则自动跟随更新**：继续使用社区维护的 `.srs` 二进制规则集，每 7 天经当前选中的境外出口自动更新，部署完成后长期不用手动维护。
 
-## 一、核心概念简析
+## 一、整体架构与核心概念
+
+### 1. 多端分流与跨境回程全链路图
+
+Mac 和 iPhone 共用同一份 `sing-box` 配置。从应用发起请求、经过本地虚拟网卡分流到不同物理网卡，再到通过不同回程线路的 VPS 访问海外服务，完整链路如下：
+
+```mermaid
+flowchart TB
+    subgraph client["Mac / iPhone 客户端（iCloud 共用 esim-split.json）"]
+        App["应用请求<br/>浏览器 / Claude / GitHub / Steam"] --> Tun["虚拟网卡 tun-in<br/>1. sniff 嗅探域名 & hijack-dns<br/>2. 拒绝境外 UDP 443（QUIC 退回 TCP）"]
+        Tun -->|"国内网站 / 局域网 / Steam 下载"| OutDef["default 出站"]
+        Tun -->|"Claude / ChatGPT / GitHub / Google / 境外列表"| Sel{{"proxy-select 策略组<br/>一键切换 + 打断旧长连接"}}
+    end
+
+    subgraph nic["本机物理网卡绑定"]
+        OutDef --> WifiCN["默认网卡：家里 Wi-Fi（en0）"]
+        Sel -->|"1. 默认主力：us-la-vps<br/>2. 备用节点：jp-vps"| WifiProxy["默认网卡：家里 Wi-Fi（en0）<br/>VLESS + XTLS-Reality（TCP 443）"]
+        Sel -->|"3. 兜底热备：esim<br/>限定 cellular / ethernet"| EsimNic["异网网卡：iPhone 蜂窝（eSIM）<br/>或 Mac 有线网卡（iPhone USB 热点 en6）"]
+    end
+
+    subgraph transit["跨境传输与 VPS 回程链路差异"]
+        WifiProxy -->|"默认主力"| US["美西洛杉矶 VPS（us-la-vps）<br/>回程：三网精品优化（China Premium Optimised）<br/>电信 CN2 GIA / 联通 9929 / 移动 CMIN2<br/>✅ 晚高峰不拥塞，全天稳定"]
+        WifiProxy -.->|"手动切换备用"| JP["日本东京 VPS（jp-vps）<br/>回程：IIJ 接普通民用骨干网（163 / 4837 / CMI）<br/>⚠️ 白天延迟低，晚高峰骨干网易拥塞卡顿"]
+        EsimNic -.->|"手动切换兜底"| Roam["境外 eSIM 国际漫游专线<br/>✅ 原生漫游 IP，完全独立于家宽"]
+    end
+
+    WifiCN --> TargetCN["国内网站 & 局域网设备"]
+    US & JP & Roam --> TargetGlobal["海外目标服务<br/>Claude / ChatGPT / Gemini / GitHub / Google"]
+```
+
+### 2. 为什么主力选美西三网优化，而不是物理距离更近的日本？
+
+平时访问网页、和 AI 对话或拉取代码，请求包很小，真正占大头的是服务器发回本机的**回程（Inbound）流量**。两台 VPS 的核心差异就在回程走的是哪张网：
+
+| 对比维度 | 美西洛杉矶 VPS（`us-la-vps`，默认主力） | 日本东京 IIJ VPS（`jp-vps`，备用） |
+| --- | --- | --- |
+| **回程线路** | **三网精品优化（China Premium Optimised）**<br/>电信 **CN2 GIA** / 联通 **CUII 9929** / 移动 **CMIN2** | **日本 IIJ 对接国内普通民用骨干网**<br/>电信 **163（AS4134）** / 联通 **4837** / 移动 **CMI** |
+| **物理距离与基础延迟** | 跨太平洋，基础 RTT 约 140～170 ms | 物理距离近，闲时 RTT 约 50～80 ms |
+| **晚高峰表现（20:00–24:00）** | 走高优先级精品轻载通道，**基本零丢包、不断流** | 与海量民用国际流量挤同一条骨干网出口，**易丢包、卡顿** |
+| **实际定位** | **全天默认主力**（AI 流式输出、日常网页最稳） | **备用节点**（美西维护时切换，或白天低延迟场景使用） |
+
+### 3. 核心协议与配置机制
 
 动手配置之前，先理清这次升级新增的几个关键机制：
 
